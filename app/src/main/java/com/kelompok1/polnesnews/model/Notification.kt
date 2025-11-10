@@ -5,5 +5,5 @@ data class Notification(
     val iconRes: Int,
     val category: String,
     val title: String,
-    val date: String // format: "Tuesday, 04 November 2025"
+    val date: String
 )

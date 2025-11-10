@@ -62,7 +62,7 @@ fun WelcomeScreen(navController: NavController) {
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_welcome_image),
+                    painter = painterResource(id = R.drawable.ic_polnes_news),
                     contentDescription = "Welcome Image",
                     modifier = Modifier
                         .fillMaxWidth(0.8f)

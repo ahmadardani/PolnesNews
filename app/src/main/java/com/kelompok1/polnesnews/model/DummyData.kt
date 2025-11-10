@@ -7,7 +7,7 @@ import java.util.Locale
 
 object DummyData {
 
-    // Fungsi untuk format tanggal
+    // Format tanggal: yyyy-MM-dd → Tuesday, 04 November 2025
     private fun formatDate(dateString: String): String {
         val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH)
         val outputFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy", Locale.ENGLISH)
@@ -15,39 +15,59 @@ object DummyData {
         return date.format(outputFormatter)
     }
 
-    val newsList = listOf(
-        News(
+    val userList = listOf(
+        User(
             id = 1,
-            title = "Inovasi Teknologi Baru di Indonesia",
-            category = "Teknologi",
-            imageRes = R.drawable.sample_news1,
-            content = "Konten berita ini hanya contoh untuk tampilan awal.",
-            author = "Admin",
-            date = "2025-11-09"
+            name = "Editor A",
+            email = "editor_a@polnesnews.com",
+            password = "password123",
+            role = UserRole.EDITOR
         ),
-        News(
+        User(
             id = 2,
-            title = "Ekonomi Dunia Mulai Pulih Pasca Krisis",
-            category = "Ekonomi",
-            imageRes = R.drawable.sample_news2,
-            content = "Isi berita contoh kedua.",
-            author = "Editor",
-            date = "2025-11-08"
+            name = "Editor B",
+            email = "editor_b@polnesnews.com",
+            password = "password123",
+            role = UserRole.EDITOR
         )
     )
 
     val categoryList = listOf(
-        Category(1, "Technology", R.drawable.category_tech)
+        Category(1, "Teknologi", R.drawable.category_tech),
+        Category(2, "Ekonomi", R.drawable.category_economy)
     )
 
-    // Notifikasi otomatis berdasarkan newsList
+    val newsList = listOf(
+        News(
+            id = 1,
+            title = "Inovasi Teknologi Baru di Indonesia",
+            categoryId = 1,
+            imageRes = R.drawable.sample_news1,
+            content = "Konten berita ini hanya contoh untuk tampilan awal.",
+            authorId = 1, // Editor A
+            date = "2025-11-09",
+            views = 4
+        ),
+        News(
+            id = 2,
+            title = "Ekonomi Dunia Mulai Pulih Pasca Krisis",
+            categoryId = 2,
+            imageRes = R.drawable.sample_news2,
+            content = "Isi berita contoh kedua.",
+            authorId = 2, // Editor B
+            date = "2025-11-08",
+            views = 12
+        )
+    )
+
     val notifications = newsList.map { news ->
+        val categoryName = categoryList.find { it.id == news.categoryId }?.name ?: "Unknown"
         Notification(
             id = news.id,
             iconRes = R.drawable.ic_news,
-            category = news.category,
+            category = categoryName,
             title = news.title,
-            date = formatDate(news.date) // Format langsung
+            date = formatDate(news.date)
         )
     }
 }

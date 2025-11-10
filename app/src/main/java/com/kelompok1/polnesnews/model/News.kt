@@ -3,11 +3,10 @@ package com.kelompok1.polnesnews.model
 data class News(
     val id: Int,
     val title: String,
-    val category: String,
-    val imageRes: Int, // gunakan resource drawable lokal
+    val categoryId: Int,
+    val imageRes: Int,
     val content: String,
-    val author: String,
+    val authorId: Int,
     val date: String,
-    val views: Int = 0,
-    val isFeatured: Boolean = false
+    val views: Int = 0
 )

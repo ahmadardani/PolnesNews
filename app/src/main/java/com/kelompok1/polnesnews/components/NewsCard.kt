@@ -1,38 +1,39 @@
 package com.kelompok1.polnesnews.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.background
 import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.News
-
 
 @Composable
 fun NewsCard(
     news: News,
     onClick: () -> Unit
 ) {
+    val categoryName = DummyData.categoryList.find { it.id == news.categoryId }?.name ?: "Unknown"
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(3f / 2f)
-            .padding(8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable { onClick() }
             .clip(RoundedCornerShape(8.dp))
     ) {
@@ -60,7 +61,7 @@ fun NewsCard(
                 .padding(12.dp)
         ) {
             Text(
-                text = news.category,
+                text = categoryName, // ✅ pakai nama kategori
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White,
                 fontSize = 14.sp
@@ -80,12 +81,6 @@ fun NewsCard(
 @Preview(showBackground = true)
 @Composable
 fun NewsCardPreview() {
-    // Ambil berita pertama dari DummyData untuk jadi contoh
     val sampleNews = DummyData.newsList[0]
-
-    // Panggil NewsCard dengan data tersebut
-    NewsCard(
-        news = sampleNews,
-        onClick = {} // onClick biarkan kosong untuk preview
-    )
+    NewsCard(news = sampleNews, onClick = {})
 }
