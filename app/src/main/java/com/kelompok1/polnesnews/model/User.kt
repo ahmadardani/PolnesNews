@@ -9,6 +9,7 @@ data class User(
 )
 
 enum class UserRole {
+    ADMIN,
     EDITOR,
     USER
 }

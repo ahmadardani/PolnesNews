@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -24,58 +23,42 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.kelompok1.polnesnews.components.CommonTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(
+    // Butuh 2 NavController:
+    // 'authNavController' untuk navigasi di dalam flow auth (spt. ke register),
+    // 'rootNavController' untuk navigasi keluar dari flow auth (ke halaman utama aplikasi).
+    rootNavController: NavHostController,
+    authNavController: NavController
+) {
 
-    // Variabel state untuk menyimpan input pengguna
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Login",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) { // Fungsi untuk kembali
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
-                    }
-                },
-                actions = {
-                    // Trik untuk menyeimbangkan judul di tengah
-                    // Kita tambahkan IconButton kosong di kanan
-                    IconButton(onClick = {}, enabled = false) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.Transparent)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF038900),  // Warna background TopBar
-                    titleContentColor = Color.White,     // Warna teks judul
-                    navigationIconContentColor = Color.White // Warna ikon "Kembali"
-                )
+            // Pakai CommonTopBar yang reusable biar konsisten di semua layar
+            CommonTopBar(
+                title = "Login",
+                onBack = { authNavController.navigateUp() }
             )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues) // Padding dari TopBar
-                .padding(horizontal = 24.dp), // Padding konten
+                .padding(paddingValues)
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- Teks Welcome Back ---
             Text(
                 text = "Welcome back\nGlad to see you, Again!",
                 style = MaterialTheme.typography.headlineMedium,
@@ -86,7 +69,6 @@ fun LoginScreen(navController: NavController) {
                 lineHeight = 40.sp
             )
 
-            // --- Text Field Email ---
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -98,7 +80,6 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Text Field Password ---
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -108,12 +89,8 @@ fun LoginScreen(navController: NavController) {
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 trailingIcon = {
-                    val image = if (passwordVisible)
-                        Icons.Filled.Visibility
-                    else Icons.Filled.VisibilityOff
-
+                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     val description = if (passwordVisible) "Sembunyikan password" else "Tampilkan password"
-
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(imageVector = image, description)
                     }
@@ -122,28 +99,31 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Link Lupa Password ---
             ClickableText(
                 text = AnnotatedString("Forgot password?"),
                 onClick = {
-                    // TODO: Tambahkan navigasi ke halaman lupa password
-                    // navController.navigate("forgot_password")
+                    // TODO: Arahkan ke layar 'forgot_password'
+                    // authNavController.navigate("forgot_password")
                 },
                 style = TextStyle(
-                    color = Color(0xFF038900), // Warna hijau Anda
+                    color = Color(0xFF038900),
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.End
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Spacer untuk mendorong tombol ke bawah
             Spacer(modifier = Modifier.weight(1.0f))
 
-            // --- Tombol Login ---
             Button(
                 onClick = {
-                    // TODO: Tambahkan logika login di sini
+                    // TODO: Tambahkan logika validasi login dulu
+
+                    // Jika berhasil, navigasi ke 'user_app' (halaman utama)
+                    // dan hapus 'auth' dari back stack biar nggak bisa kembali ke login.
+                    rootNavController.navigate("user_app") {
+                        popUpTo("auth") { inclusive = true }
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -157,14 +137,17 @@ fun LoginScreen(navController: NavController) {
                 Text("Login", fontSize = 16.sp)
             }
 
-            Spacer(modifier = Modifier.height(32.dp)) // Jarak dari bawah
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
-// --- Preview ---
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen(navController = rememberNavController())
+    // Siapkan NavController dummy untuk kebutuhan preview
+    LoginScreen(
+        rootNavController = rememberNavController(),
+        authNavController = rememberNavController()
+    )
 }

@@ -75,10 +75,10 @@ fun CategoryCard(
 @Preview(showBackground = true)
 @Composable
 fun CategoryCardPreview() {
-    // Kita ambil data kategori pertama dari DummyData
+    //  ambil data kategori pertama dari DummyData
     val sampleCategory = DummyData.categoryList[0]
 
-    // Kita panggil CategoryCard dengan data itu
+    // panggil CategoryCard dengan data itu
     CategoryCard(
         category = sampleCategory,
         onClick = {} // Biarkan kosong untuk preview

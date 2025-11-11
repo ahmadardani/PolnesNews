@@ -8,5 +8,6 @@ data class News(
     val content: String,
     val authorId: Int,
     val date: String,
-    val views: Int = 0
+    val views: Int = 0,
+    val youtubeVideoId: String? = null
 )

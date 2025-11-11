@@ -17,10 +17,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.kelompok1.polnesnews.R
 
 @Composable
-fun WelcomeScreen(navController: NavController) {
+fun WelcomeScreen(
+    // 'authNavController' untuk pindah layar di dalam flow auth (Welcome -> Login/SignUp).
+    // 'rootNavController' untuk keluar dari flow auth (setelah login/daftar berhasil),
+    // meski di layar ini kita belum pakai 'rootNavController'.
+    rootNavController: NavHostController,
+    authNavController: NavController
+) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -31,7 +38,7 @@ fun WelcomeScreen(navController: NavController) {
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // --- Bagian 1: Tulisan Welcome ---
+            // Bagian Judul
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -49,14 +56,14 @@ fun WelcomeScreen(navController: NavController) {
                 )
             }
 
-            // --- Bagian 2: Gambar PNG di tengah ---
+            // Bagian Logo/Ilustrasi
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(2f)
-                    .paint( // ⬇️ TAMBAHKAN MODIFIER INI
-                        painter = painterResource(id = R.drawable.ic_doodle_background), // <-- Ganti ini
-                        contentScale = ContentScale.Crop, // <-- Sesuaikan ini
+                    .paint( // Kasih background doodle tipis-tipis
+                        painter = painterResource(id = R.drawable.ic_doodle_background),
+                        contentScale = ContentScale.Crop,
                         alpha = 0.3f
                     ),
                 contentAlignment = Alignment.Center
@@ -70,10 +77,10 @@ fun WelcomeScreen(navController: NavController) {
                 )
             }
 
-            // --- Bagian 3: Spacer kecil ---
+            // Spacer ini sengaja untuk memberi jarak sebelum area tombol
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Bagian 4: Tombol di bawah ---
+            // Bagian Tombol Aksi
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -82,7 +89,8 @@ fun WelcomeScreen(navController: NavController) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Button(
-                    onClick = { navController.navigate("login") },
+                    // Arahkan ke layar 'login' menggunakan NavController internal (auth)
+                    onClick = { authNavController.navigate("login") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
@@ -97,7 +105,8 @@ fun WelcomeScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedButton(
-                    onClick = { navController.navigate("signup") },
+                    // Arahkan ke layar 'signup' menggunakan NavController internal (auth)
+                    onClick = { authNavController.navigate("signup") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
@@ -116,6 +125,10 @@ fun WelcomeScreen(navController: NavController) {
 @Preview(showBackground = true)
 @Composable
 fun WelcomeScreenPreview() {
+    // Siapkan NavController bohongan (dummy) agar preview bisa dirender
     val dummyNavController = rememberNavController()
-    WelcomeScreen(navController = dummyNavController)
+    WelcomeScreen(
+        rootNavController = dummyNavController,
+        authNavController = dummyNavController
+    )
 }

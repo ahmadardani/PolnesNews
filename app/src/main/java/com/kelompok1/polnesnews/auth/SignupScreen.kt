@@ -3,7 +3,6 @@ package com.kelompok1.polnesnews.auth
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -21,13 +20,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.kelompok1.polnesnews.components.CommonTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpScreen(navController: NavController) {
+fun SignUpScreen(
+    // 2 NavController:
+    // 'authNavController' untuk navigasi internal auth (misal, kembali ke WelcomeScreen),
+    // 'rootNavController' untuk navigasi ke app utama setelah daftar/login berhasil.
+    rootNavController: NavHostController,
+    authNavController: NavController
+) {
 
-    // State untuk menyimpan input pengguna
     var fullName by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -37,44 +43,22 @@ fun SignUpScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Sign Up",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
-                    }
-                },
-                actions = {
-                    // Trik untuk menyeimbangkan judul di tengah
-                    IconButton(onClick = {}, enabled = false) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.Transparent)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF038900),       // Warna background TopBar
-                    titleContentColor = Color.White,          // Warna teks judul
-                    navigationIconContentColor = Color.White  // Warna ikon "Kembali"
-                )
+            // Pakai CommonTopBar yang sudah dibuat, biar tampilan konsisten
+            CommonTopBar(
+                title = "Sign Up",
+                onBack = { authNavController.navigateUp() } // Kembali ke layar sebelumnya di auth flow
             )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues) // Padding dari TopBar
-                .padding(horizontal = 24.dp), // Padding konten
+                .padding(paddingValues)
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- Teks Hello ---
             Text(
                 text = "Hello!\nSign up to get started!",
                 style = MaterialTheme.typography.headlineMedium,
@@ -85,7 +69,6 @@ fun SignUpScreen(navController: NavController) {
                 lineHeight = 40.sp
             )
 
-            // --- Text Field Full Name ---
             OutlinedTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
@@ -96,7 +79,6 @@ fun SignUpScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Text Field Email ---
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -108,7 +90,6 @@ fun SignUpScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Text Field Password ---
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -127,7 +108,6 @@ fun SignUpScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Text Field Confirm Password ---
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
@@ -144,14 +124,18 @@ fun SignUpScreen(navController: NavController) {
                 }
             )
 
-            // Spacer untuk mendorong tombol ke bawah
-            Spacer(modifier = Modifier.weight(1.0f))
+            Spacer(modifier = Modifier.weight(1.0f)) // Dorong tombol ke bawah
 
-            // --- Tombol Sign Up ---
             Button(
                 onClick = {
-                    // TODO: Tambahkan logika Sign Up
-                    // Cek jika password == confirmPassword, dll.
+                    // TODO: Tambahkan validasi dulu di sini (email valid, password cocok, dll)
+                    // TODO: Panggil ViewModel/API untuk proses sign up
+
+                    // Kalau berhasil, navigasi ke 'user_app' (main app)
+                    // dan hapus 'auth' dari back stack.
+                    rootNavController.navigate("user_app") {
+                        popUpTo("auth") { inclusive = true }
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -165,14 +149,17 @@ fun SignUpScreen(navController: NavController) {
                 Text("Sign Up", fontSize = 16.sp)
             }
 
-            Spacer(modifier = Modifier.height(32.dp)) // Jarak dari bawah
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
-// --- Preview ---
 @Preview(showBackground = true)
 @Composable
 fun SignUpScreenPreview() {
-    SignUpScreen(navController = rememberNavController())
+    // Siapkan NavController dummy (bohongan) supaya preview bisa jalan
+    SignUpScreen(
+        rootNavController = rememberNavController(),
+        authNavController = rememberNavController()
+    )
 }

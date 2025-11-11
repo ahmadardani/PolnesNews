@@ -1,4 +1,4 @@
-package com.kelompok1.polnesnews.ui.components
+package com.kelompok1.polnesnews.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,7 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.kelompok1.polnesnews.model.DummyData
 
 @Composable
-fun NotificationCard(notification: Notification) {
+fun NotificationCard(notification: Notification) { // <-- NAMA FUNGSI DIUBAH
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -55,7 +55,7 @@ fun NotificationCard(notification: Notification) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(12.dp)
             ) {
-                // Icon di kiri
+                // ... (Isi Card tetap sama) ...
                 Box(
                     modifier = Modifier
                         .size(36.dp)
@@ -73,7 +73,6 @@ fun NotificationCard(notification: Notification) {
 
                 Spacer(modifier = Modifier.width(10.dp))
 
-                // Teks di kanan
                 Column {
                     Text(
                         text = "New article from ${notification.category}",
@@ -81,7 +80,7 @@ fun NotificationCard(notification: Notification) {
                             fontWeight = FontWeight.Medium,
                             fontSize = 13.sp
                         ),
-                        color = Color(0xFF375E2F) // <-- DIUBAH DI SINI
+                        color = Color(0xFF375E2F)
                     )
                     Text(
                         text = notification.title,
@@ -97,10 +96,9 @@ fun NotificationCard(notification: Notification) {
     }
 }
 
-// Preview akan otomatis diperbarui
 @Preview(showBackground = true)
 @Composable
-fun NotificationCardPreview() {
+fun NotificationCardPreview() { // <-- NAMA PREVIEW DIUBAH
     val sampleNotification = DummyData.notifications[0]
-    NotificationCard(notification = sampleNotification)
+    NotificationCard(notification = sampleNotification) // <-- PANGGILAN DIUBAH
 }
