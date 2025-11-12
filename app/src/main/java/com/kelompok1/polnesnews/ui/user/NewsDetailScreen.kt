@@ -1,5 +1,7 @@
 package com.kelompok1.polnesnews.ui.user
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -12,10 +14,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -26,11 +28,9 @@ import androidx.compose.ui.platform.LocalDensity
 import kotlin.math.roundToInt
 import androidx.core.text.HtmlCompat
 import com.kelompok1.polnesnews.components.CommonTopBar
+import com.kelompok1.polnesnews.components.VideoThumbnailCard
 import com.kelompok1.polnesnews.model.Comment
 import com.kelompok1.polnesnews.model.DummyData
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,8 +38,8 @@ fun NewsDetailScreen(
     onNavigateBack: () -> Unit,
     newsId: Int
 ) {
-    // 1. Ambil semua data yang diperlukan berdasarkan newsId
-    // 'remember(key)' dipakai agar data ini di-fetch ulang HANYA jika 'newsId'-nya berubah.
+    // Ambil semua data terkait berita.
+    // 'remember' dipakai agar query ini hanya jalan lagi jika newsId berubah.
     val news = remember(newsId) {
         DummyData.newsList.find { it.id == newsId }
     }
@@ -58,7 +58,7 @@ fun NewsDetailScreen(
             )
         }
     ) { innerPadding ->
-        // Handle kasus jika berita dengan ID tersebut tidak ditemukan (misal, ID salah)
+        // Handle jika ID berita tidak valid atau berita tidak ditemukan.
         if (news == null) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
@@ -66,17 +66,20 @@ fun NewsDetailScreen(
             ) {
                 Text("Berita tidak ditemukan.")
             }
-            return@Scaffold // Hentikan eksekusi Composable di sini
+            return@Scaffold // Stop render di sini
         }
 
-        // 2. Tampilkan konten berita di dalam LazyColumn agar bisa di-scroll
+        // Ambil context untuk dipakai di Intent video
+        val context = LocalContext.current
+
+        // Konten utama dibuat di LazyColumn agar bisa scroll
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
-            // Bagian Judul
+            // Judul Artikel
             item {
                 Text(
                     text = news.title,
@@ -86,7 +89,7 @@ fun NewsDetailScreen(
                 )
             }
 
-            // Bagian Gambar Utama Berita
+            // Gambar Utama
             item {
                 Spacer(modifier = Modifier.height(16.dp))
                 Image(
@@ -99,7 +102,7 @@ fun NewsDetailScreen(
                 )
             }
 
-            // Bagian Info Author dan Tanggal (custom component)
+            // Info Author & Tanggal
             item {
                 Spacer(modifier = Modifier.height(16.dp))
                 AuthorDateRow(
@@ -108,31 +111,49 @@ fun NewsDetailScreen(
                 )
             }
 
-            // Bagian Konten/Isi Artikel (dirender dari HTML)
+            // Konten Artikel (render dari HTML)
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                HtmlText( // Pakai helper HtmlText di bawah
+                HtmlText(
                     html = news.content,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
 
-            // Tampilkan pemutar YouTube HANYA jika ID videonya ada
+            // Tampilkan video thumbnail HANYA jika ID-nya ada
             if (news.youtubeVideoId != null) {
                 item {
                     Spacer(modifier = Modifier.height(24.dp))
-                    // Panggil helper composable YouTubePlayer di bawah
-                    YouTubePlayer(videoId = news.youtubeVideoId)
+                    Text(
+                        text = "Video",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+                    )
+
+                    // Card thumbnail video palsu
+                    VideoThumbnailCard(
+                        youtubeVideoId = news.youtubeVideoId,
+                        onClick = {
+                            // Buka link YouTube di browser/app
+                            val webIntent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://www.youtube.com/watch?v=${news.youtubeVideoId}")
+                            )
+                            context.startActivity(webIntent)
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
                 }
             }
 
-            // Bagian Input Rating (bintang 1-5)
+            // Input Rating Bintang
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 ArticleRatingInput() // Helper di bawah
             }
 
-            // Judul sub-seksi "User Ratings"
+            // Judul "User Ratings"
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
@@ -143,7 +164,7 @@ fun NewsDetailScreen(
                 )
             }
 
-            // Bagian Ringkasan Rating (rata-rata & total)
+            // Ringkasan rata-rata rating
             item {
                 RatingSummary(comments = comments) // Helper di bawah
             }
@@ -151,10 +172,10 @@ fun NewsDetailScreen(
     }
 }
 
-// --- Helper Composables (khusus untuk layar ini) ---
+// --- Helper Composables (khusus layar ini) ---
 
 /**
- * Menampilkan dua Card berdampingan untuk Author dan Tanggal.
+ * Menampilkan info Author dan Tanggal berdampingan.
  */
 @Composable
 private fun AuthorDateRow(authorName: String, date: String) {
@@ -164,7 +185,7 @@ private fun AuthorDateRow(authorName: String, date: String) {
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Card Kiri: Author
+        // Card Author
         Card(
             modifier = Modifier.weight(1f),
             elevation = CardDefaults.cardElevation(2.dp),
@@ -180,7 +201,7 @@ private fun AuthorDateRow(authorName: String, date: String) {
                 Text(text = authorName, style = MaterialTheme.typography.bodyMedium)
             }
         }
-        // Card Kanan: Tanggal
+        // Card Tanggal
         Card(
             modifier = Modifier.weight(1f),
             elevation = CardDefaults.cardElevation(2.dp),
@@ -200,50 +221,11 @@ private fun AuthorDateRow(authorName: String, date: String) {
 }
 
 /**
- * Composable wrapper untuk 'AndroidView' yang menampung library YouTubePlayerView.
- * Ini adalah cara untuk memakai View Android (non-Compose) di dalam Compose.
- */
-@Composable
-private fun YouTubePlayer(videoId: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    ) {
-        Text(
-            text = "Video",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        // AndroidView digunakan untuk 'embed' View Android tradisional
-        AndroidView(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 9f)
-                .clip(MaterialTheme.shapes.medium),
-            factory = { context ->
-                // 'factory' hanya dijalankan sekali untuk MEMBUAT View-nya
-                YouTubePlayerView(context).apply {
-                    addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
-                        override fun onReady(youTubePlayer: YouTubePlayer) {
-                            // 'cueVideo' akan me-load video tapi tidak auto-play, lebih stabil.
-                            youTubePlayer.cueVideo(videoId, 0f)
-                        }
-                    })
-                }
-            }
-        )
-    }
-}
-
-/**
- * Composable untuk input 5 bintang (1-5) dari user
+ * Input 5 bintang (1-5) dari user.
  */
 @Composable
 private fun ArticleRatingInput() {
-    var userRating by remember { mutableStateOf(0) } // State untuk menyimpan rating user
+    var userRating by remember { mutableStateOf(0) } // Simpan rating pilihan user
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -261,10 +243,10 @@ private fun ArticleRatingInput() {
             (1..5).forEach { index ->
                 IconButton(onClick = { userRating = index }) {
                     Icon(
-                        // Tampilkan ikon Bintang Isi (Filled) jika 'index' <= rating, jika tidak, Bintang Kosong (Outline)
+                        // Bintang isi (filled) vs bintang kosong (outline)
                         imageVector = if (index <= userRating) Icons.Filled.Star else Icons.Outlined.StarOutline,
                         contentDescription = "Rate $index",
-                        tint = Color(0xFFFFC107), // Warna kuning emas
+                        tint = Color(0xFFFFC107), // Kuning emas
                         modifier = Modifier.size(36.dp)
                     )
                 }
@@ -274,11 +256,11 @@ private fun ArticleRatingInput() {
 }
 
 /**
- * Menampilkan ringkasan rata-rata rating dari semua user
+ * Menampilkan ringkasan rata-rata rating dari semua user.
  */
 @Composable
 private fun RatingSummary(comments: List<Comment>) {
-    // Tampilkan pesan jika belum ada yang memberi rating
+    // Tampilkan pesan jika belum ada rating
     if (comments.isEmpty()) {
         Text(
             text = "No ratings yet for this article.",
@@ -321,11 +303,11 @@ private fun RatingSummary(comments: List<Comment>) {
             // Kanan: Visualisasi bintang
             Row {
                 (1..5).forEach { index ->
-                    // Logika untuk menampilkan bintang penuh, setengah, atau kosong
+                    // Logika untuk bintang penuh, setengah, atau kosong
                     val icon = when {
-                        averageRating >= index -> Icons.Filled.Star // Penuh
-                        averageRating >= index - 0.5 -> Icons.Filled.StarHalf // Setengah
-                        else -> Icons.Outlined.StarOutline // Kosong
+                        averageRating >= index -> Icons.Filled.Star
+                        averageRating >= index - 0.5 -> Icons.Filled.StarHalf
+                        else -> Icons.Outlined.StarOutline
                     }
                     Icon(
                         imageVector = icon,
@@ -340,16 +322,16 @@ private fun RatingSummary(comments: List<Comment>) {
 }
 
 /**
- * Composable 'interop' untuk merender string HTML ke dalam TextView Android.
- * Dibutuhkan karena Composable Text() bawaan (saat ini) tidak bisa parse tag HTML (spt <b>).
+ * Merender string HTML ke TextView.
+ * Perlu AndroidView karena Text() Compose belum bisa parse tag <b>, <i>, dll.
  */
 @Composable
 private fun HtmlText(html: String, modifier: Modifier = Modifier) {
-    // Ambil style dari MaterialTheme
+    // Ambil style dari tema
     val textStyle = MaterialTheme.typography.bodyLarge
     val textColor = MaterialTheme.colorScheme.onSurface
 
-    // Ambil lineHeight DALAM PIXEL (px)
+    // Ambil lineHeight dalam Pixel (px)
     val lineHeightInPx = with(LocalDensity.current) {
         textStyle.lineHeight.toPx().roundToInt()
     }
@@ -357,20 +339,16 @@ private fun HtmlText(html: String, modifier: Modifier = Modifier) {
     AndroidView(
         modifier = modifier,
         factory = { context ->
-            // 'factory': Atur style TextView (warna, ukuran) saat pertama kali dibuat.
+            // 'factory': Atur style TextView sekali saat dibuat
             TextView(context).apply {
                 setTextColor(textColor.toArgb())
                 textSize = textStyle.fontSize.value
-
-                // Set lineHeight dalam PIXEL (Cara yang benar untuk TextView)
                 setLineSpacing((lineHeightInPx - lineHeight).toFloat(), 1.0f)
-
-                linksClickable = true // Jika ada <a> tag
+                linksClickable = true // Aktifkan link <a>
             }
         },
         update = {
-            // 'update': Dipanggil saat 'html' (input) berubah.
-            // Gunakan parser HtmlCompat untuk mengubah string HTML jadi Spanned text.
+            // 'update': Dipanggil saat input 'html' berubah
             it.text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY)
         }
     )
@@ -380,8 +358,7 @@ private fun HtmlText(html: String, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 private fun NewsDetailScreenPreview() {
-    // Preview ini akan merender berita dengan ID 1,
-    // yang (berdasarkan DummyData) punya video dan komentar.
+    // Preview ini pakai berita ID 1 (yang punya video & komen)
     NewsDetailScreen(
         onNavigateBack = {},
         newsId = 1
