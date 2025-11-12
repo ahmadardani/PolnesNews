@@ -21,7 +21,9 @@ import com.kelompok1.polnesnews.model.DummyData
  * Layar yang menampilkan daftar semua kategori berita.
  */
 @Composable
-fun CategoriesScreen() {
+fun CategoriesScreen(
+    onCategoryClick: (String) -> Unit
+) {
     val categories = DummyData.categoryList
 
     // Gunakan LazyColumn untuk menampilkan daftar kategori
@@ -38,6 +40,7 @@ fun CategoriesScreen() {
                 onClick = {
                     // TODO: Implementasi navigasi ke layar detail kategori
                     // (Misal: "CategoryNewsList/${category.id}")
+                    onCategoryClick(category.name)
                 }
             )
         }
@@ -50,7 +53,7 @@ fun CategoriesScreen() {
 private fun CategoriesScreenPreview() {
     // PolnesNewsTheme {
     // Preview ini hanya merender konten layarnya saja.
-    CategoriesScreen()
+    CategoriesScreen(onCategoryClick = {})
     // }
 }
 
@@ -75,7 +78,9 @@ private fun FullCategoriesScreenPreview() {
     ) { innerPadding ->
         // Terapkan padding dari Scaffold ke konten kita
         Box(modifier = Modifier.padding(innerPadding)) {
-            CategoriesScreen()
+            CategoriesScreen(
+                onCategoryClick = {}
+            )
         }
     }
     // }

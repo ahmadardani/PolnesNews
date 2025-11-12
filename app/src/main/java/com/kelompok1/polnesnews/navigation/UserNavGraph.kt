@@ -95,7 +95,13 @@ fun UserNavGraph(
                     onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
-            composable("Categories") { CategoriesScreen() }
+            composable("Categories") { CategoriesScreen(
+                onCategoryClick = { categoryName ->
+                    // Saat kategori diklik, navigasikan ke rute
+                    // "CategorySelected/" dengan nama kategori.
+                    userNavController.navigate("CategorySelected/$categoryName")
+                }
+            ) }
             composable("Notifications") { NotificationsScreen() }
             composable("Settings") {
                 SettingsScreen(
@@ -106,6 +112,18 @@ fun UserNavGraph(
                             popUpTo("user_app") { inclusive = true } // Hapus 'user_app' dari back stack
                         }
                     }
+                )
+            }
+            composable(
+                route = "CategorySelected/{categoryName}",
+                arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
+            ) { backStackEntry ->
+                // Ambil nama kategori dari argumen navigasi
+                val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
+                CategorySelectedScreen(
+                    categoryName = categoryName,
+                    onNavigateBack = { userNavController.popBackStack() },
+                    onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
 
