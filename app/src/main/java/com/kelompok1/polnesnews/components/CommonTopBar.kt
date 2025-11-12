@@ -4,7 +4,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -19,9 +18,8 @@ fun CommonTopBar(
         title = {
             Text(
                 text = title,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.SemiBold
-                // Nggak perlu Modifier.fillMaxWidth() atau TextAlign.Center lagi
             )
         },
         navigationIcon = {
@@ -31,15 +29,19 @@ fun CommonTopBar(
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Kembali",
-                        tint = Color.White // Pastikan ikonnya putih
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }
         },
         // Atur skema warna TopAppBar-nya di sini
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = Color(0xFF038900), // Warna hijau utama aplikasi
-            titleContentColor = Color.White // Warna untuk judul
+
+            containerColor = MaterialTheme.colorScheme.primary,  // Warna hijau utama aplikasi
+
+            titleContentColor = MaterialTheme.colorScheme.onPrimary,  // Warna untuk judul
+
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
         )
     )
 }

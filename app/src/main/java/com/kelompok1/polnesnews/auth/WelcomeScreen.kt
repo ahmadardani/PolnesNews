@@ -13,12 +13,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.kelompok1.polnesnews.R
+import androidx.compose.ui.graphics.ColorFilter
+import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 
 @Composable
 fun WelcomeScreen(
@@ -52,7 +53,7 @@ fun WelcomeScreen(
                         fontSize = 36.sp
                     ),
                     textAlign = TextAlign.Center,
-                    color = Color(0xFF038900)
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
@@ -64,7 +65,8 @@ fun WelcomeScreen(
                     .paint( // Kasih background doodle tipis-tipis
                         painter = painterResource(id = R.drawable.ic_doodle_background),
                         contentScale = ContentScale.Crop,
-                        alpha = 0.3f
+                        alpha = 0.3f,
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -73,7 +75,8 @@ fun WelcomeScreen(
                     contentDescription = "Welcome Image",
                     modifier = Modifier
                         .fillMaxWidth(0.8f)
-                        .height(220.dp)
+                        .height(220.dp),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                 )
             }
 
@@ -95,8 +98,8 @@ fun WelcomeScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF038900),
-                        contentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
                     Text("Login")
@@ -111,8 +114,10 @@ fun WelcomeScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color(0xFF038900),
+                        // 'surface' biasanya adalah White di LightMode
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        // 'primary' adalah warna hijau Polnes
+                        contentColor = MaterialTheme.colorScheme.primary,
                     )
                 ) {
                     Text("Sign Up")
@@ -127,8 +132,10 @@ fun WelcomeScreen(
 fun WelcomeScreenPreview() {
     // Siapkan NavController bohongan (dummy) agar preview bisa dirender
     val dummyNavController = rememberNavController()
+    PolnesNewsTheme {
     WelcomeScreen(
         rootNavController = dummyNavController,
         authNavController = dummyNavController
     )
+        }
 }

@@ -3,7 +3,6 @@ package com.kelompok1.polnesnews.components
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -18,14 +17,14 @@ fun TitleOnlyTopAppBar(
         title = {
             Text(
                 text = title,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.Bold
             )
         },
         // Atur skema warna untuk TopAppBar ini
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = Color(0xFF038900), // Warna background hijau
-            titleContentColor = Color.White // Pastikan warna teks judul putih
+            containerColor = MaterialTheme.colorScheme.primary, // Warna background hijau
+            titleContentColor = MaterialTheme.colorScheme.onPrimary // Pastikan warna teks judul putih
         ),
         modifier = modifier
     )

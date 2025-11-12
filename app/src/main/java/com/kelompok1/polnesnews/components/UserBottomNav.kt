@@ -5,66 +5,59 @@ import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 
-/**
- * Composable untuk Bottom Navigation Bar utama.
- * Komponen ini 'stateless' (tidak mengelola state-nya sendiri).
- * Item yang aktif dikontrol dari luar melalui parameter [currentRoute].
- */
 @Composable
 fun UserBottomNav(
     modifier: Modifier = Modifier,
-    currentRoute: String, // Rute yang sedang aktif (misal: "Home"), untuk highlight item
+    currentRoute: String,
     onItemClick: (String) -> Unit
 ) {
-    // State 'selectedItemIndex' sudah tidak ada di sini (state hoisting).
-    // Item yang 'selected' ditentukan oleh 'currentRoute' dari pemanggil.
     val items = listOf("Home", "Categories", "Notifications", "Settings")
 
-    NavigationBar(modifier = modifier) {
-        items.forEach { label -> // (index tidak diperlukan lagi)
-
-            // Logika 'selected': Item ini aktif jika 'label'-nya sama dengan 'currentRoute'
+    NavigationBar(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.primary,
+        tonalElevation = 3.dp // 🔹 Tambahkan sedikit elevasi biar ada depth
+    ) {
+        items.forEach { label ->
             val isSelected = (currentRoute == label)
 
             NavigationBarItem(
                 selected = isSelected,
-                onClick = {
-                    onItemClick(label) // Saat diklik, kirim 'label' (rute) ke pemanggil
-                },
-                label = { Text(text = label) },
+                onClick = { onItemClick(label) },
                 icon = {
                     Icon(
                         imageVector = getIconForLabel(label),
                         contentDescription = label
                     )
                 },
+                label = {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (isSelected)
+                            MaterialTheme.colorScheme.onPrimary
+                        else
+                            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
+                    )
+                },
                 colors = NavigationBarItemDefaults.colors(
-                    // Atur warna kustom
-                    selectedIconColor = Color(0xFF375E2F),
-                    selectedTextColor = Color(0xFF375E2F),
-                    unselectedIconColor = Color.Gray,
-                    unselectedTextColor = Color.Gray,
-                    indicatorColor = Color.Transparent // Sembunyikan background 'pil' M3
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                    selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f),
+                    unselectedTextColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f),
+                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) // 🔹 Biar lebih lembut
                 )
             )
         }
     }
 }
 
-/**
- * Fungsi helper privat untuk memetakan String label
- * ke ImageVector ikon yang sesuai.
- */
 @Composable
 private fun getIconForLabel(label: String): ImageVector {
     return when (label) {
@@ -72,6 +65,6 @@ private fun getIconForLabel(label: String): ImageVector {
         "Categories" -> Icons.Filled.Category
         "Notifications" -> Icons.Filled.Notifications
         "Settings" -> Icons.Filled.Settings
-        else -> Icons.Filled.Home // Default ke Home jika ada label yang tidak dikenal
+        else -> Icons.Filled.Home
     }
 }

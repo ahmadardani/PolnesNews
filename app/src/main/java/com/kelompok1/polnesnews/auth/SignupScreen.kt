@@ -10,12 +10,10 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,6 +21,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.kelompok1.polnesnews.components.CommonTopBar
+import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -142,8 +141,8 @@ fun SignUpScreen(
                     .padding(horizontal = 16.dp)
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF038900),
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 Text("Sign Up", fontSize = 16.sp)
@@ -158,8 +157,10 @@ fun SignUpScreen(
 @Composable
 fun SignUpScreenPreview() {
     // Siapkan NavController dummy (bohongan) supaya preview bisa jalan
-    SignUpScreen(
-        rootNavController = rememberNavController(),
-        authNavController = rememberNavController()
-    )
+    PolnesNewsTheme {
+        SignUpScreen(
+            rootNavController = rememberNavController(),
+            authNavController = rememberNavController()
+        )
+    }
 }

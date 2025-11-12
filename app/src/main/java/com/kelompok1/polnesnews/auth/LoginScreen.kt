@@ -11,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +25,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.kelompok1.polnesnews.components.CommonTopBar
+import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,7 +106,7 @@ fun LoginScreen(
                     // authNavController.navigate("forgot_password")
                 },
                 style = TextStyle(
-                    color = Color(0xFF038900),
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.End
                 ),
@@ -130,8 +130,8 @@ fun LoginScreen(
                     .padding(horizontal = 16.dp)
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF038900),
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 Text("Login", fontSize = 16.sp)
@@ -146,8 +146,10 @@ fun LoginScreen(
 @Composable
 fun LoginScreenPreview() {
     // Siapkan NavController dummy untuk kebutuhan preview
-    LoginScreen(
-        rootNavController = rememberNavController(),
-        authNavController = rememberNavController()
-    )
+    PolnesNewsTheme {
+        LoginScreen(
+            rootNavController = rememberNavController(),
+            authNavController = rememberNavController()
+        )
+    }
 }

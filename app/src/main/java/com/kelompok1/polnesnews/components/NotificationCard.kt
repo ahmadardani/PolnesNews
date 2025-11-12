@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -22,9 +21,19 @@ import androidx.compose.ui.unit.sp
 import com.kelompok1.polnesnews.model.Notification
 import androidx.compose.ui.tooling.preview.Preview
 import com.kelompok1.polnesnews.model.DummyData
+import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.kelompok1.polnesnews.ui.theme.NotifBackgroundDark
+import com.kelompok1.polnesnews.ui.theme.NotifBackgroundLight
+import com.kelompok1.polnesnews.ui.theme.NotifIconTintDark
+import com.kelompok1.polnesnews.ui.theme.NotifIconTintLight
 
 @Composable
-fun NotificationCard(notification: Notification) { // <-- NAMA FUNGSI DIUBAH
+fun NotificationCard(notification: Notification) {
+    val isDark = isSystemInDarkTheme()
+    // Tentukan warna ikon berdasarkan tema
+    val iconBackground = if (isDark) NotifBackgroundDark else NotifBackgroundLight
+    val iconTint = if (isDark) NotifIconTintDark else NotifIconTintLight
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -34,7 +43,7 @@ fun NotificationCard(notification: Notification) { // <-- NAMA FUNGSI DIUBAH
         Text(
             text = notification.date,
             style = MaterialTheme.typography.bodySmall.copy(
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold
             ),
@@ -46,7 +55,7 @@ fun NotificationCard(notification: Notification) { // <-- NAMA FUNGSI DIUBAH
         Card(
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color.White
+                containerColor = MaterialTheme.colorScheme.surface
             ),
             elevation = CardDefaults.cardElevation(3.dp),
             modifier = Modifier.fillMaxWidth()
@@ -60,13 +69,13 @@ fun NotificationCard(notification: Notification) { // <-- NAMA FUNGSI DIUBAH
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFA3E5A6)),
+                        .background(iconBackground),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
                         painter = painterResource(id = notification.iconRes),
                         contentDescription = "Notification Icon",
-                        colorFilter = ColorFilter.tint(Color(0xFF50AE5E)),
+                        colorFilter = ColorFilter.tint(iconTint),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -80,7 +89,7 @@ fun NotificationCard(notification: Notification) { // <-- NAMA FUNGSI DIUBAH
                             fontWeight = FontWeight.Medium,
                             fontSize = 13.sp
                         ),
-                        color = Color(0xFF375E2F)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = notification.title,
@@ -100,5 +109,7 @@ fun NotificationCard(notification: Notification) { // <-- NAMA FUNGSI DIUBAH
 @Composable
 fun NotificationCardPreview() { // <-- NAMA PREVIEW DIUBAH
     val sampleNotification = DummyData.notifications[0]
-    NotificationCard(notification = sampleNotification) // <-- PANGGILAN DIUBAH
+    PolnesNewsTheme {
+        NotificationCard(notification = sampleNotification) // <-- PANGGILAN DIUBAH
+    }
 }
