@@ -14,41 +14,36 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.kelompok1.polnesnews.components.PolnesTopAppBar // (Nama ini sepertinya custom)
+import com.kelompok1.polnesnews.components.PolnesTopAppBar
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.components.UserBottomNav
-import com.kelompok1.polnesnews.ui.user.* // Impor semua layar user
+import com.kelompok1.polnesnews.ui.user.*
+
+// Impor untuk Animasi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+// Hapus slideInVertically / slideOutVertically
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserNavGraph(
-    // Menerima NavController 'root' dari MainActivity.
-    // Ini dipakai untuk navigasi KELUAR dari graph ini (contoh: untuk Logout).
     rootNavController: NavHostController
 ) {
-    // Membuat NavController internal (lokal) HANYA untuk layar-layar
-    // di dalam 'user flow' (Home, Settings, Detail, dll).
     val userNavController = rememberNavController()
-
-    // Kita perlu 'listen' ke back stack untuk tahu kita sedang di layar mana.
     val navBackStackEntry by userNavController.currentBackStackEntryAsState()
-    // Ambil nama rute yang aktif saat ini, default-nya "Home".
     val currentRoute = navBackStackEntry?.destination?.route ?: "Home"
 
-    // --- LOGIKA PENTING UNTUK UI ---
-    // Tentukan layar mana saja yang boleh menampilkan TopBar dan BottomBar.
+    // Daftar layar utama & indeksnya
     val userScreens = listOf("Home", "Categories", "Notifications", "Settings")
-    // 'showBars' akan bernilai 'true' HANYA jika 'currentRoute' ada di dalam list di atas.
-    // Ini berarti layar seperti "NewsDetail" tidak akan menampilkannya.
     val showBars = currentRoute in userScreens
 
     Scaffold(
+        // ... (topBar dan bottomBar Anda tetap sama) ...
         topBar = {
-            // Tampilkan TopBar yang berbeda-beda tergantung layar,
-            // tapi hanya jika 'showBars' bernilai 'true'.
             if (showBars) {
                 when (currentRoute) {
-                    "Home" -> PolnesTopAppBar() // TopBar khusus untuk Home
+                    "Home" -> PolnesTopAppBar()
                     "Categories" -> TitleOnlyTopAppBar(title = "Categories")
                     "Notifications" -> TitleOnlyTopAppBar(title = "Notifications")
                     "Settings" -> TitleOnlyTopAppBar(title = "Settings")
@@ -56,20 +51,15 @@ fun UserNavGraph(
             }
         },
         bottomBar = {
-            // Tampilkan BottomNav HANYA jika kita ada di salah satu layar utama.
             if (showBars) {
                 UserBottomNav(
                     currentRoute = currentRoute,
                     onItemClick = { route ->
-                        // Ini adalah logika navigasi standar untuk BottomBar
                         userNavController.navigate(route) {
-                            // Pop up ke start destination (Home) untuk menghindari back stack yang menumpuk
                             popUpTo(userNavController.graph.findStartDestination().id) {
-                                saveState = true // Simpan state layar sebelumnya
+                                saveState = true
                             }
-                            // Hindari membuka layar yang sama berulang kali
                             launchSingleTop = true
-                            // Pulihkan state jika kita kembali ke layar yang sudah dibuka
                             restoreState = true
                         }
                     }
@@ -77,39 +67,96 @@ fun UserNavGraph(
             }
         }
     ) { innerPadding ->
-        // NavHost ini adalah 'jantung' dari navigasi internal user
-        NavHost(
-            navController = userNavController, // PENTING: Pakai userNavController (lokal)
-            startDestination = "Home",
-            // Terapkan padding dari Scaffold, TAPI hanya jika bar-nya tampil.
-            // Jika tidak, layar detail (seperti NewsDetail) akan punya padding kosong di atas.
-            modifier = if (showBars) Modifier.padding(innerPadding) else Modifier
-        ) {
 
-            // --- Definisi Layar-Layar Utama (dengan BottomBar) ---
+        NavHost(
+            navController = userNavController,
+            startDestination = "Home",
+            modifier = if (showBars) Modifier.padding(innerPadding) else Modifier,
+
+            // --- REVISI LOGIKA ANIMASI ---
+
+            enterTransition = {
+                val initialRoute = initialState.destination.route
+                val targetRoute = targetState.destination.route
+
+                // 1. Perpindahan antar tab bottom nav
+                if (initialRoute in userScreens && targetRoute in userScreens) {
+                    val initialIndex = userScreens.indexOf(initialRoute)
+                    val targetIndex = userScreens.indexOf(targetRoute)
+
+                    if (targetIndex > initialIndex) {
+                        slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300))
+                    } else {
+                        slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300))
+                    }
+                }
+                // 2. "Sisanya": Masuk ke layar detail
+                else {
+                    // GANTI DARI VERTIKAL KE HORIZONTAL
+                    // Masuk dari KANAN (efek push)
+                    slideInHorizontally(
+                        initialOffsetX = { 1000 },
+                        animationSpec = tween(300)
+                    )
+                }
+            },
+            exitTransition = {
+                val initialRoute = initialState.destination.route
+                val targetRoute = targetState.destination.route
+
+                // 1. Perpindahan antar tab bottom nav
+                if (initialRoute in userScreens && targetRoute in userScreens) {
+                    val initialIndex = userScreens.indexOf(initialRoute)
+                    val targetIndex = userScreens.indexOf(targetRoute)
+
+                    if (targetIndex > initialIndex) {
+                        slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300))
+                    } else {
+                        slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(300))
+                    }
+                }
+                // 2. "Sisanya": Keluar dari layar utama
+                else {
+                    // GANTI DARI VERTIKAL KE HORIZONTAL
+                    // Keluar ke KIRI
+                    slideOutHorizontally(
+                        targetOffsetX = { -1000 },
+                        animationSpec = tween(300)
+                    )
+                }
+            },
+
+            // Animasi 'Pop' (tombol Back) sudah benar (geser dari/ke samping)
+            popEnterTransition = {
+                slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(300))
+            }
+            // --- BATAS REVISI ANIMASI ---
+
+        ) {
+            // ... (Semua composable() Anda tetap sama) ...
             composable("Home") {
                 HomeScreen(
-                    // Navigasi internal pakai 'userNavController'
                     onViewAllRecent = { userNavController.navigate("RecentNews") },
                     onViewAllMostViewed = { userNavController.navigate("MostViewedNews") },
                     onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
-            composable("Categories") { CategoriesScreen(
-                onCategoryClick = { categoryName ->
-                    // Saat kategori diklik, navigasikan ke rute
-                    // "CategorySelected/" dengan nama kategori.
-                    userNavController.navigate("CategorySelected/$categoryName")
-                }
-            ) }
+            composable("Categories") {
+                CategoriesScreen(
+                    onCategoryClick = { categoryName ->
+                        userNavController.navigate("CategorySelected/$categoryName")
+                    }
+                )
+            }
             composable("Notifications") { NotificationsScreen() }
             composable("Settings") {
                 SettingsScreen(
                     onLogout = {
-                        // PENTING: Untuk Logout, kita pakai 'rootNavController'
-                        // untuk 'kabur' dari 'user_app' dan kembali ke 'auth'.
                         rootNavController.navigate("auth") {
-                            popUpTo("user_app") { inclusive = true } // Hapus 'user_app' dari back stack
+                            popUpTo("user_app") { inclusive = true }
                         }
                     }
                 )
@@ -118,7 +165,6 @@ fun UserNavGraph(
                 route = "CategorySelected/{categoryName}",
                 arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
             ) { backStackEntry ->
-                // Ambil nama kategori dari argumen navigasi
                 val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
                 CategorySelectedScreen(
                     categoryName = categoryName,
@@ -126,11 +172,9 @@ fun UserNavGraph(
                     onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
-
-            // --- Definisi Layar-Layar 'Detail' (tanpa BottomBar) ---
             composable("RecentNews") {
                 RecentNewsScreen(
-                    onNavigateBack = { userNavController.popBackStack() }, // Fungsi 'back' standar
+                    onNavigateBack = { userNavController.popBackStack() },
                     onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
@@ -140,13 +184,10 @@ fun UserNavGraph(
                     onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
-
-            // Layar detail berita dengan argumen 'newsId'
             composable(
                 route = "NewsDetail/{newsId}",
                 arguments = listOf(navArgument("newsId") { type = NavType.IntType })
             ) { backStackEntry ->
-                // Ambil ID berita dari argumen navigasi
                 val newsId = backStackEntry.arguments?.getInt("newsId") ?: 0
                 NewsDetailScreen(
                     onNavigateBack = { userNavController.popBackStack() },
