@@ -67,24 +67,26 @@ object DummyData {
         News(
             id = 1,
             title = "Inovasi Teknologi Baru di Indonesia",
-            categoryId = 1, // Merujuk ke Kategori "Teknologi"
+            categoryId = 1,
             imageRes = R.drawable.sample_news1,
             content = "Konten berita ini <b>hanya contoh</b> untuk tampilan awal.",
-            authorId = 1, // Merujuk ke User "Ade Darmawan"
+            authorId = 1,
             date = "2025-11-09",
             views = 4,
-            youtubeVideoId = "dQw4w9WgXcQ" // (Opsional) ID video YouTube
+            youtubeVideoId = "dQw4w9WgXcQ",
+            status = NewsStatus.PUBLISHED
         ),
         News(
             id = 2,
             title = "Ekonomi Dunia Mulai Pulih Pasca Krisis",
-            categoryId = 2, // Merujuk ke Kategori "Ekonomi"
+            categoryId = 2,
             imageRes = R.drawable.sample_news2,
             content = "Isi berita contoh kedua.",
-            authorId = 2, // Merujuk ke User "Editor B"
+            authorId = 2,
             date = "2025-11-08",
             views = 12,
-            youtubeVideoId = null // (Opsional) null jika tidak ada video
+            youtubeVideoId = null,
+            status = NewsStatus.PENDING_REVIEW
         )
     )
 
