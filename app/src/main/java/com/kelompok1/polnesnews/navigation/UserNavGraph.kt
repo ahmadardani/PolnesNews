@@ -18,12 +18,12 @@ import com.kelompok1.polnesnews.components.PolnesTopAppBar
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.components.UserBottomNav
 import com.kelompok1.polnesnews.ui.user.*
+import com.kelompok1.polnesnews.utils.SessionManager // Jangan lupa import SessionManager
 
 // Impor untuk Animasi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-// Hapus slideInVertically / slideOutVertically
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,12 +34,10 @@ fun UserNavGraph(
     val navBackStackEntry by userNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "Home"
 
-    // Daftar layar utama & indeksnya
     val userScreens = listOf("Home", "Categories", "Notifications", "Settings")
     val showBars = currentRoute in userScreens
 
     Scaffold(
-        // ... (topBar dan bottomBar Anda tetap sama) ...
         topBar = {
             if (showBars) {
                 when (currentRoute) {
@@ -73,70 +71,20 @@ fun UserNavGraph(
             startDestination = "Home",
             modifier = if (showBars) Modifier.padding(innerPadding) else Modifier,
 
-            // --- REVISI LOGIKA ANIMASI ---
-
+            // --- Animasi ---
             enterTransition = {
-                val initialRoute = initialState.destination.route
-                val targetRoute = targetState.destination.route
-
-                // 1. Perpindahan antar tab bottom nav
-                if (initialRoute in userScreens && targetRoute in userScreens) {
-                    val initialIndex = userScreens.indexOf(initialRoute)
-                    val targetIndex = userScreens.indexOf(targetRoute)
-
-                    if (targetIndex > initialIndex) {
-                        slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300))
-                    } else {
-                        slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300))
-                    }
-                }
-                // 2. "Sisanya": Masuk ke layar detail
-                else {
-                    // GANTI DARI VERTIKAL KE HORIZONTAL
-                    // Masuk dari KANAN (efek push)
-                    slideInHorizontally(
-                        initialOffsetX = { 1000 },
-                        animationSpec = tween(300)
-                    )
-                }
+                slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300))
             },
             exitTransition = {
-                val initialRoute = initialState.destination.route
-                val targetRoute = targetState.destination.route
-
-                // 1. Perpindahan antar tab bottom nav
-                if (initialRoute in userScreens && targetRoute in userScreens) {
-                    val initialIndex = userScreens.indexOf(initialRoute)
-                    val targetIndex = userScreens.indexOf(targetRoute)
-
-                    if (targetIndex > initialIndex) {
-                        slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300))
-                    } else {
-                        slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(300))
-                    }
-                }
-                // 2. "Sisanya": Keluar dari layar utama
-                else {
-                    // GANTI DARI VERTIKAL KE HORIZONTAL
-                    // Keluar ke KIRI
-                    slideOutHorizontally(
-                        targetOffsetX = { -1000 },
-                        animationSpec = tween(300)
-                    )
-                }
+                slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300))
             },
-
-            // Animasi 'Pop' (tombol Back) sudah benar (geser dari/ke samping)
             popEnterTransition = {
                 slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300))
             },
             popExitTransition = {
                 slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(300))
             }
-            // --- BATAS REVISI ANIMASI ---
-
         ) {
-            // ... (Semua composable() Anda tetap sama) ...
             composable("Home") {
                 HomeScreen(
                     onViewAllRecent = { userNavController.navigate("RecentNews") },
@@ -152,15 +100,23 @@ fun UserNavGraph(
                 )
             }
             composable("Notifications") { NotificationsScreen() }
+
+            // 🟢 PERBAIKAN LOGOUT DI SINI
             composable("Settings") {
                 SettingsScreen(
                     onLogout = {
-                        rootNavController.navigate("auth") {
-                            popUpTo("user_app") { inclusive = true }
+                        // 1. Hapus data login
+                        SessionManager.currentUser = null
+
+                        // 2. Navigasi ke Login (Pastikan nama routenya 'auth_graph')
+                        rootNavController.navigate("auth_graph") {
+                            // Hapus history 'user_root'
+                            popUpTo("user_root") { inclusive = true }
                         }
                     }
                 )
             }
+
             composable(
                 route = "CategorySelected/{categoryName}",
                 arguments = listOf(navArgument("categoryName") { type = NavType.StringType })

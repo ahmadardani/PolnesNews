@@ -66,6 +66,7 @@ fun AddANewArticleScreen(
     )
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             CommonTopBar(
                 // 8. Judul dinamis berdasarkan mode

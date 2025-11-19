@@ -1,7 +1,5 @@
 package com.kelompok1.polnesnews.ui.editor
 
-// TAMBAHKAN IMPORT INI
-// IMPORT BARU UNTUK KOMPONEN
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
@@ -11,21 +9,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
+import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.NewsStatus
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ExperimentalMaterial3Api
-import com.kelompok1.polnesnews.components.EditorBottomNav
-import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorDashboardScreen(
     editorId: Int,
-    currentRoute: String, // <-- PERUBAHAN 1: Ditambahkan
-    onNavigate: (String) -> Unit // <-- PERUBAHAN 1: Ditambahkan
+    currentRoute: String,
+    onNavigate: (String) -> Unit
 ) {
     val newsByEditor = DummyData.newsList.filter { it.authorId == editorId }
     val ratings = DummyData.commentList.filter { comment ->
@@ -46,23 +41,18 @@ fun EditorDashboardScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
+        // ✅ PERBAIKAN: Top Bar dipasang di sini
         topBar = {
-            // PERUBAHAN 2: Menggunakan TitleOnlyTopAppBar
             TitleOnlyTopAppBar(title = "Dashboard")
-        },
-        // PERUBAHAN 3: Menambahkan bottomBar (Navbar)
-        bottomBar = {
-            EditorBottomNav(
-                currentRoute = currentRoute,
-                onNavigate = onNavigate
-            )
         }
+        // 🔴 PERBAIKAN: bottomBar DIHAPUS dari sini
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
-                .padding(innerPadding) // Padding dari Scaffold
-                .padding(16.dp), // Padding konten di dalam LazyColumn
-            verticalArrangement = Arrangement.spacedBy(16.dp) // Jarak antar item
+                .padding(innerPadding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
                 Text(
@@ -73,7 +63,6 @@ fun EditorDashboardScreen(
                 )
             }
 
-            // Grup Row 1
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -84,7 +73,6 @@ fun EditorDashboardScreen(
                 }
             }
 
-            // Grup Row 2
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -95,7 +83,6 @@ fun EditorDashboardScreen(
                 }
             }
 
-            // Grup Row 3
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -105,41 +92,36 @@ fun EditorDashboardScreen(
                 }
             }
 
-            // Performance Text
             item {
                 Text(
-                    text = "Performance Status", // <-- Teks judul baru
+                    text = "Performance Status",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 8.dp) // Jarak dari card di atas
+                    modifier = Modifier.padding(top = 8.dp)
                 )
             }
 
-            // 2. Box Card berisi nilai
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                    // Beri warna sedikit berbeda agar menonjol
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 ) {
-                    // Gunakan Box agar teks bisa center
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 24.dp), // Padding lebih besar
+                            .padding(horizontal = 16.dp, vertical = 24.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = performanceText,
-                            fontSize = 20.sp, // Font lebih besar
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-
-            }
+                    }
                 }
             }
         }
@@ -169,15 +151,14 @@ fun DashboardCard(title: String, value: String) {
     }
 }
 
-@Preview(showBackground = true, name = "Editor Dashboard Screen")
+@Preview(showBackground = true)
 @Composable
 private fun EditorDashboardScreenPreview() {
-    // Panggil tema Anda sebagai fungsi, yang akan membungkus konten preview
-    PolnesNewsTheme { // <-- PERBAIKAN: Dipanggil sebagai fungsi
+    PolnesNewsTheme {
         EditorDashboardScreen(
             editorId = 1,
-            currentRoute = "editor_dashboard", // Tandai 'Dashboard' sebagai aktif
-            onNavigate = {} // Sediakan lambda kosong untuk preview
+            currentRoute = "editor_dashboard",
+            onNavigate = {}
         )
     }
 }

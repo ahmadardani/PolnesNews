@@ -29,7 +29,7 @@ object DummyData {
         User(
             id = 1,
             name = "Ade Darmawan",
-            email = "editor_a@polnesnews.com",
+            email = "ade@polnesnews.com",
             password = "password123",
             role = UserRole.EDITOR
         ),

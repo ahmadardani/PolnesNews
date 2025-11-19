@@ -1,56 +1,77 @@
 package com.kelompok1.polnesnews.navigation
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.kelompok1.polnesnews.auth.WelcomeScreen
 import com.kelompok1.polnesnews.auth.LoginScreen
 import com.kelompok1.polnesnews.auth.SignUpScreen
+import com.kelompok1.polnesnews.auth.WelcomeScreen
+import com.kelompok1.polnesnews.model.DummyData
+import com.kelompok1.polnesnews.model.UserRole
+import com.kelompok1.polnesnews.utils.SessionManager
 
-/**
- * Ini adalah Navigation Graph terpisah (nested graph) yang khusus menangani
- * semua layar yang berhubungan dengan otentikasi (Welcome, Login, Sign Up).
- */
 @Composable
 fun AuthNavGraph(
-    // Ini adalah NavController utama ('root') dari aplikasi (misal, dari MainActivity).
-    // Fungsinya untuk navigasi KELUAR dari alur otentikasi ini
-    // (Contoh: setelah login sukses, navigasi ke 'home' pakai controller ini).
     rootNavController: NavHostController
 ) {
-    // Buat NavController baru (lokal) yang HANYA akan mengatur
-    // navigasi DI DALAM alur otentikasi ini.
-    // (Contoh: dari 'welcome' ke 'login', atau 'login' ke 'signup').
     val authNavController = rememberNavController()
+    val context = LocalContext.current
 
-    // NavHost ini menggunakan 'authNavController' (lokal)
     NavHost(
         navController = authNavController,
         startDestination = "welcome"
     ) {
         composable("welcome") {
             WelcomeScreen(
-                // Diteruskan untuk navigasi KELUAR (jika diperlukan)
                 rootNavController = rootNavController,
-                // Diteruskan untuk navigasi INTERNAL (ke 'login' atau 'signup')
                 authNavController = authNavController
             )
         }
+
         composable("login") {
             LoginScreen(
-                // Diteruskan untuk navigasi KELUAR (setelah login sukses)
                 rootNavController = rootNavController,
-                // Diteruskan untuk navigasi INTERNAL (misal, kembali ke 'welcome')
-                authNavController = authNavController
+                authNavController = authNavController,
+                onLoginSubmitted = { emailInput, passwordInput ->
+
+                    val matchedUser = DummyData.userList.find {
+                        it.email == emailInput && it.password == passwordInput
+                    }
+
+                    if (matchedUser != null) {
+                        SessionManager.currentUser = matchedUser
+
+                        // NAVIGASI HARUS SESUAI DENGAN MAIN ACTIVITY
+                        when (matchedUser.role) {
+                            UserRole.EDITOR -> {
+                                rootNavController.navigate("editor_root") {
+                                    popUpTo("auth_graph") { inclusive = true }
+                                }
+                            }
+                            UserRole.USER -> {
+                                // Pastikan ini "user_root", BUKAN "user_app"
+                                rootNavController.navigate("user_root") {
+                                    popUpTo("auth_graph") { inclusive = true }
+                                }
+                            }
+                            UserRole.ADMIN -> {
+                                Toast.makeText(context, "Halaman Admin belum tersedia", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } else {
+                        Toast.makeText(context, "Email atau Password salah!", Toast.LENGTH_SHORT).show()
+                    }
+                }
             )
         }
+
         composable("signup") {
             SignUpScreen(
-                // Diteruskan untuk navigasi KELUAR (setelah daftar sukses)
                 rootNavController = rootNavController,
-                // Diteruskan untuk navigasi INTERNAL (misal, kembali ke 'welcome')
                 authNavController = authNavController
             )
         }

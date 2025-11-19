@@ -30,11 +30,9 @@ import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    // Butuh 2 NavController:
-    // 'authNavController' untuk navigasi di dalam flow auth (spt. ke register),
-    // 'rootNavController' untuk navigasi keluar dari flow auth (ke halaman utama aplikasi).
     rootNavController: NavHostController,
-    authNavController: NavController
+    authNavController: NavController,
+    onLoginSubmitted: (String, String) -> Unit
 ) {
 
     var email by rememberSaveable { mutableStateOf("") }
@@ -43,7 +41,6 @@ fun LoginScreen(
 
     Scaffold(
         topBar = {
-            // Pakai CommonTopBar yang reusable biar konsisten di semua layar
             CommonTopBar(
                 title = "Login",
                 onBack = { authNavController.navigateUp() }
@@ -102,7 +99,6 @@ fun LoginScreen(
             ClickableText(
                 text = AnnotatedString("Forgot password?"),
                 onClick = {
-                    // TODO: Arahkan ke layar 'forgot_password'
                     // authNavController.navigate("forgot_password")
                 },
                 style = TextStyle(
@@ -115,15 +111,12 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.weight(1.0f))
 
+            // 🟢 PERBAIKAN DI SINI
             Button(
                 onClick = {
-                    // TODO: Tambahkan logika validasi login dulu
-
-                    // Jika berhasil, navigasi ke 'user_app' (halaman utama)
-                    // dan hapus 'auth' dari back stack biar nggak bisa kembali ke login.
-                    rootNavController.navigate("user_app") {
-                        popUpTo("auth") { inclusive = true }
-                    }
+                    // Cukup panggil ini saja!
+                    // Jangan navigasi manual di sini. Biarkan AuthNavGraph yang menentukan arahnya.
+                    onLoginSubmitted(email, password)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -145,11 +138,11 @@ fun LoginScreen(
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    // Siapkan NavController dummy untuk kebutuhan preview
     PolnesNewsTheme {
         LoginScreen(
             rootNavController = rememberNavController(),
-            authNavController = rememberNavController()
+            authNavController = rememberNavController(),
+            onLoginSubmitted = { _, _ -> }
         )
     }
 }
