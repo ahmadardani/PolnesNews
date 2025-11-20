@@ -10,18 +10,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.NewsStatus
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
+// 🔴 PARAMETER bottomNav (currentRoute, onNavigate) dihapus karena logic dipindah ke NavGraph
 @Composable
 fun EditorDashboardScreen(
     editorId: Int,
+    // Kita tinggalkan parameter ini karena tidak lagi dipakai untuk BottomNav
     currentRoute: String,
     onNavigate: (String) -> Unit
 ) {
+    // --- Data Calculation (Tetap sama) ---
     val newsByEditor = DummyData.newsList.filter { it.authorId == editorId }
     val ratings = DummyData.commentList.filter { comment ->
         newsByEditor.any { it.id == comment.newsId }
@@ -39,94 +40,96 @@ fun EditorDashboardScreen(
         averageRating >= 2.5 -> "Fair, keep improving!"
         else -> "Needs improvement!"
     }
+    // ----------------------------------------
 
-    Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
-        // ✅ PERBAIKAN: Top Bar dipasang di sini
-        topBar = {
-            TitleOnlyTopAppBar(title = "Dashboard")
+    // 🟢 PERBAIKAN: HANYA TINGGALKAN KONTEN (LazyColumn)
+    // Scaffold, TopBar, BottomBar DIHAPUS karena sudah diurus EditorNavGraph
+    LazyColumn(
+        // LazyColumn sekarang bertugas menerapkan padding estetika 16.dp
+        // Padding sistem (Top Bar & Bottom Nav) akan diurus oleh NavHost di Induk.
+        contentPadding = PaddingValues(16.dp),
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Text(
+                text = "Your Performance Overview",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 0.dp)
+            )
         }
-        // 🔴 PERBAIKAN: bottomBar DIHAPUS dari sini
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Text(
-                    text = "Your Performance Overview",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 0.dp)
+
+        // Grup Row 1
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                DashboardCard("Avg Rating", String.format("%.1f", averageRating))
+                DashboardCard("Total Views", totalViews.toString())
+            }
+        }
+
+        // Grup Row 2
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                DashboardCard("Articles", totalArticles.toString())
+                DashboardCard("Approved", approvedCount.toString())
+            }
+        }
+
+        // Grup Row 3
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                DashboardCard("Pending", pendingCount.toString())
+            }
+        }
+
+        // Performance Text
+        item {
+            Text(
+                text = "Performance Status",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
+        // Box Card berisi nilai
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                 )
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 24.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    DashboardCard("Avg Rating", String.format("%.1f", averageRating))
-                    DashboardCard("Total Views", totalViews.toString())
-                }
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    DashboardCard("Articles", totalArticles.toString())
-                    DashboardCard("Approved", approvedCount.toString())
-                }
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    DashboardCard("Pending", pendingCount.toString())
-                }
-            }
-
-            item {
-                Text(
-                    text = "Performance Status",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    Text(
+                        text = performanceText,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = performanceText,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
             }
         }
     }
 }
+
+// ... DashboardCard (tetap sama) ...
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -150,6 +153,7 @@ fun DashboardCard(title: String, value: String) {
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

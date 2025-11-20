@@ -31,24 +31,16 @@ import com.kelompok1.polnesnews.ui.theme.ActionDeleteIcon
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YourArticleScreen(navController: NavHostController) {
-    // Ganti ID ini dengan ID user yang sedang login
     val currentEditor = DummyData.userList.find { it.role == UserRole.EDITOR && it.id == 1 }
     val editorArticles = DummyData.newsList.filter { it.authorId == currentEditor?.id }
 
-    // State untuk Dialog Hapus
     var articleToDelete by remember { mutableStateOf<News?>(null) }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp),
-        // ✅ Top Bar tetap ada di sini (Karena di EditorNavGraph sudah dihapus)
-        topBar = { TitleOnlyTopAppBar(title = "Your Articles") },
-
-        // ✅ Bottom Bar TIDAK ADA di sini (Karena sudah ada di EditorNavGraph)
-
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // Navigasi ke form tambah artikel
                     navController.navigate("article_form")
                 },
                 containerColor = MaterialTheme.colorScheme.primary
@@ -58,7 +50,6 @@ fun YourArticleScreen(navController: NavHostController) {
         }
     ) { innerPadding ->
 
-        // --- Logic Dialog Hapus ---
         if (articleToDelete != null) {
             ConfirmationDialog(
                 title = "Hapus Artikel?",
@@ -67,14 +58,10 @@ fun YourArticleScreen(navController: NavHostController) {
                 confirmButtonText = "Hapus",
                 dismissButtonText = "Batal",
                 onDismiss = { articleToDelete = null },
-                onConfirm = {
-                    // TODO: Logika Hapus ke Database
-                    articleToDelete = null
-                }
+                onConfirm = { articleToDelete = null }
             )
         }
 
-        // --- Logic Tampilan List ---
         if (editorArticles.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -88,8 +75,14 @@ fun YourArticleScreen(navController: NavHostController) {
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(
-                    top = innerPadding.calculateTopPadding(),
+                    // 🟢 PERBAIKAN DI SINI:
+                    // Tambahkan + 16.dp agar item pertama (Tanggal) tidak mepet ke Top Bar
+                    top = innerPadding.calculateTopPadding() + 16.dp,
+
                     bottom = innerPadding.calculateBottomPadding(),
+
+                    // Note: Saya ubah start/end jadi 0.dp karena ArticleCard biasanya
+                    // sudah punya padding horizontal sendiri biar tidak dobel.
                     start = 0.dp,
                     end = 0.dp
                 ),
@@ -98,7 +91,6 @@ fun YourArticleScreen(navController: NavHostController) {
                     .background(MaterialTheme.colorScheme.background)
             ) {
                 items(editorArticles) { article ->
-                    // Logika Status & Warna Badge
                     val (statusMessage, statusColor) = when (article.status) {
                         NewsStatus.PENDING_REVIEW -> "Menunggu Review" to MaterialTheme.colorScheme.tertiary
                         NewsStatus.PENDING_DELETION -> "Menunggu Hapus" to MaterialTheme.colorScheme.error
@@ -110,13 +102,11 @@ fun YourArticleScreen(navController: NavHostController) {
                     Box(modifier = Modifier.fillMaxWidth()) {
                         ArticleCard(
                             article = article,
-                            // Logika Tombol Edit
                             onEdit = {
                                 if (statusMessage == null || article.status == NewsStatus.DRAFT || article.status == NewsStatus.REJECTED) {
                                     navController.navigate("article_form?articleId=${article.id}")
                                 }
                             },
-                            // Logika Tombol Hapus
                             onDelete = {
                                 if (statusMessage == null || article.status == NewsStatus.DRAFT || article.status == NewsStatus.REJECTED) {
                                     articleToDelete = article
@@ -124,7 +114,6 @@ fun YourArticleScreen(navController: NavHostController) {
                             }
                         )
 
-                        // Overlay Badge Status
                         if (statusMessage != null) {
                             Surface(
                                 color = statusColor.copy(alpha = 0.9f),
@@ -134,6 +123,7 @@ fun YourArticleScreen(navController: NavHostController) {
                                     bottomStart = androidx.compose.foundation.shape.CornerSize(8.dp)
                                 ),
                                 modifier = Modifier.align(Alignment.TopEnd)
+                                    .padding(top = 8.dp, end = 16.dp) // Sesuaikan posisi badge agar pas di card
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -154,7 +144,8 @@ fun YourArticleScreen(navController: NavHostController) {
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
+                    // Jarak antar item artikel
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }

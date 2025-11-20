@@ -15,13 +15,19 @@ object DummyData {
      * Helper internal untuk mengubah format tanggal string (yyyy-MM-dd)
      * menjadi format tampilan yang lebih mudah dibaca (Contoh: Tuesday, 04 November 2025).
      */
-    private fun formatDate(dateString: String): String {
-        // Tentukan format input (dari data kita)
-        val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH)
-        // Tentukan format output (yang akan tampil di UI)
-        val outputFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy", Locale.ENGLISH)
-        val date = LocalDate.parse(dateString, inputFormatter)
-        return date.format(outputFormatter)
+    fun formatDate(dateString: String): String {
+        try {
+            // Format input dari data (2025-11-09)
+            val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH)
+            // Format output ke UI (Saturday, 09 November 2025)
+            val outputFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy", Locale.ENGLISH)
+
+            val date = LocalDate.parse(dateString, inputFormatter)
+            return date.format(outputFormatter)
+        } catch (e: Exception) {
+            // Jika format salah/error, kembalikan string aslinya biar gak crash
+            return dateString
+        }
     }
 
     // Daftar pengguna dummy
@@ -52,6 +58,20 @@ object DummyData {
             name = "test",
             email = "test@t.com",
             password = "test",
+            role = UserRole.USER
+        ),
+        User(
+            id = 5,
+            name = "e",
+            email = "e",
+            password = "e",
+            role = UserRole.EDITOR
+        ),
+        User(
+            id = 6,
+            name = "u",
+            email = "u",
+            password = "u",
             role = UserRole.USER
         )
     )

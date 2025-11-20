@@ -1,6 +1,5 @@
 package com.kelompok1.polnesnews.components
 
-// import androidx.compose.foundation.Image <-- Dihapus karena tidak terpakai
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -10,23 +9,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-// import androidx.compose.ui.draw.clip <-- Dihapus karena tidak terpakai
 import androidx.compose.ui.graphics.Color
-// import androidx.compose.ui.layout.ContentScale <-- Dihapus karena tidak terpakai
-// import androidx.compose.ui.res.painterResource <-- Dihapus karena tidak terpakai
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.background
+import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.News
 import com.kelompok1.polnesnews.ui.theme.*
-import androidx.compose.ui.tooling.preview.Preview
-import com.kelompok1.polnesnews.model.DummyData
-import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
-import androidx.compose.foundation.layout.Arrangement
 
-/**
- * Composable utama untuk menampilkan kartu artikel editor.
- * Versi ini HANYA menampilkan Info dan Tombol Aksi (Tanpa Gambar).
- */
+
 @Composable
 fun ArticleCard(
     article: News,
@@ -34,60 +27,68 @@ fun ArticleCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+        // 2. Teks Tanggal (SUDAH DIFORMAT)
+        Text(
+            // 🟢 PANGGIL FUNGSI FORMATTER DI SINI
+            text = DummyData.formatDate(article.date),
+
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold
+            ),
+            modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
+        )
+
+        // 3. Kartu Artikel
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // 2. Info (Title & Status)
-            ArticleInfo(
-                modifier = Modifier.weight(1f),
-                title = article.title,
-                status = getArticleStatus(article.id)
-            )
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ArticleInfo(
+                    modifier = Modifier.weight(1f),
+                    title = article.title,
+                    status = getArticleStatus(article.id)
+                )
 
-            Spacer(modifier = Modifier.width(8.dp)) // Jarak antara Info dan Tombol
+                Spacer(modifier = Modifier.width(16.dp))
 
-            // 3. Tombol Aksi (Edit & Delete)
-            ArticleActions(onEdit = onEdit, onDelete = onDelete)
+                ArticleActions(onEdit = onEdit, onDelete = onDelete)
+            }
         }
     }
 }
 
-/**
- * 🔹 FUNGSI ArticleThumbnail DIHAPUS SELURUHNYA 🔹
- * (karena sudah tidak dipanggil lagi)
- */
+// ... (Sisa kode ArticleInfo, ArticleActions, StatusChip, dll TETAP SAMA) ...
 
-/**
- * Composable private untuk menampilkan Judul dan StatusChip.
- */
 @Composable
 private fun ArticleInfo(
     modifier: Modifier = Modifier,
     title: String,
     status: String
 ) {
-    // 🔹 UBAH DI SINI: Samakan dengan gaya ArticleActions
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp) // <-- TAMBAHKAN INI
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = title,
             fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.titleMedium,
             maxLines = 2
         )
-        // Spacer(modifier = Modifier.height(4.dp)) // <-- HAPUS SPACER MANUAL
-        StatusChip(status = status) // Status chip
+        StatusChip(status = status)
     }
 }
 
@@ -100,30 +101,28 @@ private fun ArticleActions(
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp) // <-- Jarak referensi
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Tombol Edit
         FilledIconButton(
             onClick = onEdit,
             modifier = Modifier.size(36.dp),
             colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = ActionEditBg,   // Latar Kuning Pucat
-                contentColor = ActionEditIcon  // Ikon Kuning Tua
+                containerColor = ActionEditBg,
+                contentColor = ActionEditIcon
             )
         ) {
-            Icon(Icons.Default.Edit, contentDescription = "Edit")
+            Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(20.dp))
         }
 
-        // Tombol Delete
         FilledIconButton(
             onClick = onDelete,
             modifier = Modifier.size(36.dp),
             colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = ActionDeleteBg,   // Latar Orange Pucat
-                contentColor = ActionDeleteIcon  // Ikon Orange Tua
+                containerColor = ActionDeleteBg,
+                contentColor = ActionDeleteIcon
             )
         ) {
-            Icon(Icons.Default.Delete, contentDescription = "Delete")
+            Icon(Icons.Default.Delete, contentDescription = "Delete", modifier = Modifier.size(20.dp))
         }
     }
 }
@@ -145,7 +144,7 @@ fun StatusChip(status: String) {
             text = status,
             color = textColor,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelSmall
         )
     }
@@ -163,31 +162,15 @@ private fun getArticleStatus(newsId: Int): String {
 @Composable
 private fun ArticleCardPreview() {
     val sampleNews = DummyData.newsList.firstOrNull()
-
     PolnesNewsTheme {
-        if (sampleNews != null) {
-            ArticleCard(
-                article = sampleNews,
-                onEdit = {},
-                onDelete = {}
-            )
-        } else {
-            Text("Tidak ada data untuk preview")
-        }
-    }
-}
-
-@Preview(showBackground = true, name = "Status Chips")
-@Composable
-private fun StatusChipPreview() {
-    PolnesNewsTheme {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(8.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            StatusChip(status = "Published")
-            StatusChip(status = "Pending")
-            StatusChip(status = "Draft")
+            if (sampleNews != null) {
+                ArticleCard(article = sampleNews, onEdit = {}, onDelete = {})
+            }
         }
     }
 }

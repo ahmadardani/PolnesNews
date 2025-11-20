@@ -6,44 +6,44 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier // 🔹 Import ditambahkan
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp // 🔹 Import ditambahkan
-
-data class EditorNavItem(
-    val label: String,
-    val icon: ImageVector,
-    val route: String
-)
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun EditorBottomNav(
-    modifier: Modifier = Modifier, // 🔹 Modifier ditambahkan
+    modifier: Modifier = Modifier,
     currentRoute: String,
     onNavigate: (String) -> Unit
 ) {
+    // 1. URUTAN BARU: Dashboard -> Articles -> Settings
     val items = listOf(
-        EditorNavItem("Your Articles", Icons.Default.Article, "editor_articles"),
-        EditorNavItem("Dashboard", Icons.Default.BarChart, "editor_dashboard"),
-        EditorNavItem("Settings", Icons.Default.Settings, "editor_settings")
+        "editor_dashboard",
+        "editor_articles",
+        "editor_settings"
     )
 
     NavigationBar(
-        modifier = modifier, // 🔹 Modifier diterapkan
-        containerColor = MaterialTheme.colorScheme.primary, // 🔹 Warna container
-        tonalElevation = 3.dp // 🔹 Elevasi
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.primary,
+        tonalElevation = 3.dp
     ) {
-        items.forEach { item ->
-            val isSelected = currentRoute == item.route // 🔹 Variabel untuk keterpilihan
+        items.forEach { route ->
+            // Cek apakah route saat ini sama dengan item
+            val isSelected = currentRoute == route
 
             NavigationBarItem(
                 selected = isSelected,
-                onClick = { onNavigate(item.route) },
-                icon = { Icon(item.icon, contentDescription = item.label) },
+                onClick = { onNavigate(route) },
+                icon = {
+                    Icon(
+                        imageVector = getIconForEditorRoute(route),
+                        contentDescription = getLabelForEditorRoute(route)
+                    )
+                },
                 label = {
-                    // 🔹 Text label dengan pewarnaan kustom
                     Text(
-                        text = item.label,
+                        text = getLabelForEditorRoute(route),
                         style = MaterialTheme.typography.labelMedium,
                         color = if (isSelected)
                             MaterialTheme.colorScheme.onPrimary
@@ -51,7 +51,7 @@ fun EditorBottomNav(
                             MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
                     )
                 },
-                // 🔹 Pewarnaan item dari NavigationBarItemDefaults
+                // Styling warna persis sama dengan UserBottomNav
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.onPrimary,
                     selectedTextColor = MaterialTheme.colorScheme.onPrimary,
@@ -61,5 +61,27 @@ fun EditorBottomNav(
                 )
             )
         }
+    }
+}
+
+// Helper untuk mendapatkan Label
+@Composable
+private fun getLabelForEditorRoute(route: String): String {
+    return when (route) {
+        "editor_dashboard" -> "Dashboard"
+        "editor_articles" -> "Your Articles"
+        "editor_settings" -> "Settings"
+        else -> "Menu"
+    }
+}
+
+// Helper untuk mendapatkan Ikon
+@Composable
+private fun getIconForEditorRoute(route: String): ImageVector {
+    return when (route) {
+        "editor_dashboard" -> Icons.Default.BarChart
+        "editor_articles" -> Icons.Default.Article
+        "editor_settings" -> Icons.Default.Settings
+        else -> Icons.Default.BarChart
     }
 }
