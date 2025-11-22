@@ -1,0 +1,253 @@
+package com.kelompok1.polnesnews.ui.admin
+
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
+import com.kelompok1.polnesnews.components.CommonTopBar
+import com.kelompok1.polnesnews.components.DeleteConfirmationDialog
+import com.kelompok1.polnesnews.model.DummyData
+import com.kelompok1.polnesnews.model.Category
+import com.kelompok1.polnesnews.ui.theme.PolnesGreen
+import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
+import com.kelompok1.polnesnews.ui.theme.White
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddANewCategoryScreen(
+    categoryId: Int? = null,
+    onBackClick: () -> Unit,
+    onSubmitClick: () -> Unit,
+    onDeleteClick: () -> Unit = {}
+) {
+    val isEditMode = categoryId != null
+    val categoryToEdit: Category? = if (isEditMode) {
+        DummyData.categoryList.find { it.id == categoryId }
+    } else {
+        null
+    }
+
+    var title by remember { mutableStateOf(categoryToEdit?.name ?: "") }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+    }
+
+    val topBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+        containerColor = MaterialTheme.colorScheme.primary,
+        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+        actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+    )
+
+    DeleteConfirmationDialog(
+        showDialog = showDeleteDialog,
+        onDismiss = { showDeleteDialog = false },
+        onConfirm = { onDeleteClick() }
+    )
+
+    Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
+        topBar = {
+            CommonTopBar(
+                title = if (isEditMode) "Edit Category" else "Add New Category",
+                onBack = onBackClick,
+                colors = topBarColors,
+                windowInsets = WindowInsets(0.dp),
+                actions = {
+                    // Tombol Hapus HANYA muncul di Mode Edit
+                    if (isEditMode) {
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Category",
+                                tint = White
+                            )
+                        }
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { onSubmitClick() },
+                containerColor = PolnesGreen,
+                contentColor = White
+            ) {
+                Icon(Icons.Default.Check, contentDescription = "Save Category")
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = innerPadding.calculateBottomPadding()
+                )
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Top
+        ) {
+            Spacer(modifier = Modifier.height(2.dp))
+
+            // --- INPUT 1: TITLE ---
+            Text(
+                text = "Category Title",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                placeholder = { Text("Enter category name") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // --- INPUT 2: IMAGE PICKER ---
+            Text(
+                text = "Category Image",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(3f / 2f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .border(
+                        width = 1.dp,
+                        color = Color.Gray.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clickable { launcher.launch("image/*") }
+            ) {
+                if (selectedImageUri != null) {
+                    Image(
+                        painter = rememberAsyncImagePainter(selectedImageUri),
+                        contentDescription = "Selected Image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Tap to change", color = Color.White, style = MaterialTheme.typography.labelMedium)
+                    }
+                } else if (isEditMode && categoryToEdit != null) {
+                    // Tampilkan Gambar Lama dari DummyData
+                    Image(
+                        painter = painterResource(id = categoryToEdit.imageRes),
+                        contentDescription = "Current Image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Tap to change", color = Color.White, style = MaterialTheme.typography.labelMedium)
+                    }
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.AddPhotoAlternate,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Tap to upload image",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "* Recommended ratio 3:2 for best display.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.height(80.dp))
+        }
+    }
+}
+
+// --- PREVIEW ADD MODE ---
+@Preview(name = "Add Mode", showBackground = true)
+@Composable
+private fun AddCategoryPreview() {
+    PolnesNewsTheme {
+        AddANewCategoryScreen(
+            categoryId = null,
+            onBackClick = {},
+            onSubmitClick = {}
+        )
+    }
+}
+
+// --- PREVIEW EDIT MODE ---
+@Preview(name = "Edit Mode", showBackground = true)
+@Composable
+private fun EditCategoryPreview() {
+    PolnesNewsTheme {
+        // Menggunakan ID 1 dari DummyData (Teknologi)
+        // Harusnya muncul tulisan "Teknologi", gambarnya ada, dan ada ikon SAMPAH di atas
+        AddANewCategoryScreen(
+            categoryId = 1,
+            onBackClick = {},
+            onSubmitClick = {},
+            onDeleteClick = {}
+        )
+    }
+}

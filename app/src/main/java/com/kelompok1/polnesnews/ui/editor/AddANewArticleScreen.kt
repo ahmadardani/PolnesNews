@@ -84,7 +84,7 @@ fun AddANewArticleScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(4.dp)) // Tambah jarak sedikit agar tidak terlalu mepet TopBar
+            Spacer(modifier = Modifier.height(2.dp)) // Tambah jarak sedikit agar tidak terlalu mepet TopBar
 
             // Input Judul
             Text("Title", style = MaterialTheme.typography.titleMedium)

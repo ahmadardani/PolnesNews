@@ -59,7 +59,9 @@ fun AuthNavGraph(
                                 }
                             }
                             UserRole.ADMIN -> {
-                                Toast.makeText(context, "Halaman Admin belum tersedia", Toast.LENGTH_SHORT).show()
+                                rootNavController.navigate("admin_root") {
+                                    popUpTo("auth_graph") { inclusive = true }
+                                }
                             }
                         }
                     } else {

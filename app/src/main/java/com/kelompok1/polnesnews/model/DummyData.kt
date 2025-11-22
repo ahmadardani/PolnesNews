@@ -73,6 +73,13 @@ object DummyData {
             email = "u",
             password = "u",
             role = UserRole.USER
+        ),
+        User(
+            id = 7,
+            name = "a",
+            email = "a",
+            password = "a",
+            role = UserRole.ADMIN
         )
     )
 

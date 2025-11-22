@@ -3,7 +3,7 @@ package com.kelompok1.polnesnews
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge // 👈 1. WAJIB IMPORT INI
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.kelompok1.polnesnews.navigation.AdminNavGraph // 👈 1. WAJIB IMPORT INI
 import com.kelompok1.polnesnews.navigation.AuthNavGraph
 import com.kelompok1.polnesnews.navigation.EditorNavGraph
 import com.kelompok1.polnesnews.navigation.UserNavGraph
@@ -22,8 +23,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 👈 2. TAMBAHKAN BARIS INI SEBELUM setContent
-        // Ini membuat Status Bar & Nav Bar jadi transparan/menyatu
         enableEdgeToEdge()
 
         setContent {
@@ -65,6 +64,23 @@ fun AppRootNavigation() {
                 currentUser = currentUser,
                 onLogout = {
                     SessionManager.currentUser = null
+                    rootNavController.navigate("auth_graph") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // 4. ADMIN (👈 TAMBAHKAN INI)
+        composable("admin_root") {
+            val currentUser = SessionManager.currentUser
+            AdminNavGraph(
+                rootNavController = rootNavController,
+                currentUser = currentUser,
+                onLogout = {
+                    // Hapus sesi user
+                    SessionManager.currentUser = null
+                    // Kembali ke Login dan hapus stack navigasi sebelumnya
                     rootNavController.navigate("auth_graph") {
                         popUpTo(0) { inclusive = true }
                     }
