@@ -19,13 +19,14 @@ import androidx.navigation.navArgument
 import com.kelompok1.polnesnews.components.AdminBottomNav
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.model.User
-import com.kelompok1.polnesnews.model.DummyData // Pastikan import ini ada untuk logika hapus
+import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.ui.admin.AddANewCategoryScreen
 import com.kelompok1.polnesnews.ui.admin.AdminDashboardScreen
 import com.kelompok1.polnesnews.ui.admin.ManageCategoriesScreen
 import com.kelompok1.polnesnews.ui.admin.ManageNewsScreen
 import com.kelompok1.polnesnews.ui.admin.ManageUsersScreen
 import com.kelompok1.polnesnews.ui.admin.AdminSettingsScreen
+import com.kelompok1.polnesnews.ui.admin.AdminEditArticleScreen // 🟢 Import AdminEditArticleScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,15 +38,14 @@ fun AdminNavGraph(
     val adminNavController = rememberNavController()
     val context = LocalContext.current
 
-    // Pantau route aktif
     val navBackStackEntry by adminNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "Dashboard"
 
-    // Daftar layar utama yang menampilkan Bottom Bar & Top Bar Induk
+    // Logic Sembunyikan Bottom Bar & Top Bar Induk di halaman Detail (Add/Edit)
     val adminMainScreens = listOf("Dashboard", "News", "Categories", "Users", "Settings")
-    // Cek sederhana: jika route mengandung "?", ambil kata depannya saja agar bottom bar tetap muncul jika perlu (opsional)
-    // Tapi untuk kasus add_category, kita memang mau menyembunyikan bottom bar.
-    val showBars = adminMainScreens.any { currentRoute.startsWith(it) } && !currentRoute.startsWith("add_category")
+    val showBars = adminMainScreens.any { currentRoute.startsWith(it) } &&
+            !currentRoute.startsWith("add_category") &&
+            !currentRoute.startsWith("edit_article") // 🟢 Sembunyikan di halaman edit article
 
     val topBarTitle = when (currentRoute) {
         "Dashboard" -> "Admin Dashboard"
@@ -87,31 +87,52 @@ fun AdminNavGraph(
         ) {
             // 1. DASHBOARD
             composable("Dashboard") {
-                AdminDashboardScreen(
-                    currentUser = currentUser
-                )
+                AdminDashboardScreen(currentUser = currentUser)
             }
 
             // 2. MANAGE NEWS
             composable("News") {
-                ManageNewsScreen()
+                ManageNewsScreen(
+                    // 🟢 3. Callback Navigasi ke Edit Article
+                    onEditArticleClick = { articleId ->
+                        adminNavController.navigate("edit_article/$articleId")
+                    }
+                )
             }
 
-            // 3. MANAGE CATEGORIES (LIST)
+            // 🟢 4. ROUTE ADMIN EDIT ARTICLE
+            composable(
+                route = "edit_article/{articleId}",
+                arguments = listOf(
+                    navArgument("articleId") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                // Ambil ID dari Argument Navigasi
+                val articleId = backStackEntry.arguments?.getInt("articleId") ?: -1
+
+                // Tampilkan Screen
+                AdminEditArticleScreen(
+                    articleId = articleId,
+                    onBackClick = { adminNavController.popBackStack() },
+                    onSaveClick = {
+                        // Logic Simpan (Simulasi)
+                        Toast.makeText(context, "Article Updated Successfully!", Toast.LENGTH_SHORT).show()
+                        adminNavController.popBackStack()
+                    }
+                )
+            }
+
+            // 3. MANAGE CATEGORIES
             composable("Categories") {
                 ManageCategoriesScreen(
-                    onAddCategoryClick = {
-                        // Navigasi Tambah Baru (Tanpa ID)
-                        adminNavController.navigate("add_category")
-                    },
+                    onAddCategoryClick = { adminNavController.navigate("add_category") },
                     onEditCategoryClick = { categoryId ->
-                        // ✅ Navigasi Edit: Kirim ID ke URL route
                         adminNavController.navigate("add_category?categoryId=$categoryId")
                     }
                 )
             }
 
-            // ROUTE FORM (ADD / EDIT)
+            // ADD/EDIT CATEGORY ROUTE
             composable(
                 route = "add_category?categoryId={categoryId}",
                 arguments = listOf(
@@ -128,27 +149,9 @@ fun AdminNavGraph(
                     categoryId = finalId,
                     onBackClick = { adminNavController.popBackStack() },
                     onSubmitClick = {
-                        // TODO: Logic simpan ke Database/API
                         val msg = if (finalId == null) "Category Added!" else "Category Updated!"
                         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                         adminNavController.popBackStack()
-                    },
-                    onDeleteClick = {
-                        if (finalId != null) {
-                            // Cek apakah kategori dipakai
-                            val isCategoryUsed = DummyData.newsList.any { it.categoryId == finalId }
-
-                            if (isCategoryUsed) {
-                                Toast.makeText(
-                                    context,
-                                    "Gagal! Kategori ini masih digunakan oleh artikel lain.",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            } else {
-                                Toast.makeText(context, "Category Deleted!", Toast.LENGTH_SHORT).show()
-                                adminNavController.popBackStack()
-                            }
-                        }
                     }
                 )
             }

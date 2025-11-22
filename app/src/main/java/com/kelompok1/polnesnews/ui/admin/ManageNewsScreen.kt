@@ -44,16 +44,18 @@ private fun getAuthorName(authorId: Int): String {
 }
 
 @Composable
-fun ManageNewsScreen() {
+fun ManageNewsScreen(
+    // 🟢 1. Tambahkan parameter ini agar NavGraph tidak merah
+    onEditArticleClick: (Int) -> Unit
+) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope() // Untuk animasi scroll tab saat diklik
+    val scope = rememberCoroutineScope()
 
     // 1. Data Source
     val newsList = remember { mutableStateListOf<News>().apply { addAll(DummyData.newsList) } }
 
     // 2. UI State & Pager
     val tabs = listOf("Needs Review", "All News")
-    // 🟢 Menggunakan PagerState untuk mengontrol slide
     val pagerState = rememberPagerState(pageCount = { tabs.size })
 
     var searchQuery by remember { mutableStateOf("") }
@@ -65,7 +67,7 @@ fun ManageNewsScreen() {
     var articleToDelete by remember { mutableStateOf<News?>(null) }
     var articleToReview by remember { mutableStateOf<News?>(null) }
 
-    // Reset pagination saat Tab (Page) atau Search berubah
+    // Reset pagination
     LaunchedEffect(pagerState.currentPage, searchQuery) {
         itemsToShow = 10
     }
@@ -116,7 +118,7 @@ fun ManageNewsScreen() {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Tab Row (Sinkron dengan Pager)
+        // Tab Row
         TabRow(
             selectedTabIndex = pagerState.currentPage,
             containerColor = MaterialTheme.colorScheme.surface
@@ -125,10 +127,7 @@ fun ManageNewsScreen() {
                 Tab(
                     selected = pagerState.currentPage == index,
                     onClick = {
-                        // Saat Tab diklik, slide pager ke halaman tersebut
-                        scope.launch {
-                            pagerState.animateScrollToPage(index)
-                        }
+                        scope.launch { pagerState.animateScrollToPage(index) }
                     },
                     text = {
                         Text(
@@ -141,9 +140,7 @@ fun ManageNewsScreen() {
             }
         }
 
-        // Search Bar (Hanya muncul jika sedang di Halaman 1 / All News)
-        // Kita taruh di luar Pager agar tidak ikut geser (sticky) atau bisa juga di dalam pager.
-        // Disini saya taruh luar agar transisi smooth.
+        // Search Bar
         if (pagerState.currentPage == 1) {
             PaddingValues(16.dp).let {
                 OutlinedTextField(
@@ -171,16 +168,13 @@ fun ManageNewsScreen() {
             }
         }
 
-        // 🟢 HORIZONTAL PAGER (Area Konten yang bisa di-swipe)
+        // Horizontal Pager
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.Top
         ) { page ->
 
-            // Logic Filter per Halaman
-            // Perhatikan: Kita gunakan 'page' (parameter pager), bukan pagerState.currentPage
-            // agar data tiap halaman dirender dengan benar saat transisi swipe.
             val filteredList = remember(page, searchQuery, newsList.toList()) {
                 if (page == 0) {
                     // Page 0: Needs Review
@@ -203,7 +197,6 @@ fun ManageNewsScreen() {
             val paginatedList = filteredList.take(itemsToShow)
             val hasMoreData = filteredList.size > itemsToShow
 
-            // Konten List
             if (paginatedList.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -220,10 +213,14 @@ fun ManageNewsScreen() {
                     items(paginatedList) { article ->
                         AdminNewsItem(
                             article = article,
-                            isReviewMode = (page == 0), // Gunakan 'page' untuk cek mode
+                            isReviewMode = (page == 0),
                             onActionClick = {
-                                if (page == 0) articleToReview = article
-                                else Toast.makeText(context, "Edit feature coming soon", Toast.LENGTH_SHORT).show()
+                                if (page == 0) {
+                                    articleToReview = article
+                                } else {
+                                    // 🟢 2. Panggil callback navigasi saat tombol Edit diklik
+                                    onEditArticleClick(article.id)
+                                }
                             },
                             onDeleteClick = { articleToDelete = article }
                         )
@@ -232,9 +229,7 @@ fun ManageNewsScreen() {
                     if (hasMoreData) {
                         item {
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp),
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 TextButton(onClick = { itemsToShow += 10 }) {
@@ -245,7 +240,6 @@ fun ManageNewsScreen() {
                             }
                         }
                     }
-
                     item { Spacer(modifier = Modifier.height(20.dp)) }
                 }
             }
@@ -271,30 +265,16 @@ fun AdminNewsItem(
             .then(if (isReviewMode) Modifier.clickable { onActionClick() } else Modifier)
     ) {
         Column {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                verticalAlignment = Alignment.Top
-            ) {
+            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
                 Image(
                     painter = painterResource(id = article.imageRes),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.LightGray)
+                    modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)).background(Color.LightGray)
                 )
-
                 Spacer(modifier = Modifier.width(12.dp))
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = article.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Text(article.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.DateRange, null, modifier = Modifier.size(14.dp), tint = Color.Gray)
@@ -310,12 +290,8 @@ fun AdminNewsItem(
                     Spacer(modifier = Modifier.height(8.dp))
                     StatusChip(status = article.status)
                 }
-
                 if (isReviewMode) {
-                    Box(
-                        modifier = Modifier.height(80.dp).padding(start = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.height(80.dp).padding(start = 8.dp), contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.ChevronRight, contentDescription = "Review", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
@@ -404,10 +380,10 @@ fun ReviewArticleDialog(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun ManageNewsScreenPreview() {
     PolnesNewsTheme {
-        ManageNewsScreen()
+        ManageNewsScreen(onEditArticleClick = {})
     }
 }
