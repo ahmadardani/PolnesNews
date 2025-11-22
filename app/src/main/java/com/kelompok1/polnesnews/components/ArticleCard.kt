@@ -1,12 +1,16 @@
 package com.kelompok1.polnesnews.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+// 🔴 HAPUS baris ini jika ada: import androidx.compose.material.MaterialTheme
+// 🔴 HAPUS baris ini jika ada: import androidx.compose.material.Card
+
+// 🟢 PASTIKAN pakai import yang ada angka '3' ini:
+import androidx.compose.material3.* import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -14,11 +18,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.background
 import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.News
+import com.kelompok1.polnesnews.model.NewsStatus
 import com.kelompok1.polnesnews.ui.theme.*
-
 
 @Composable
 fun ArticleCard(
@@ -32,11 +35,9 @@ fun ArticleCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        // 2. Teks Tanggal (SUDAH DIFORMAT)
+        // 1. Teks Tanggal
         Text(
-            // 🟢 PANGGIL FUNGSI FORMATTER DI SINI
             text = DummyData.formatDate(article.date),
-
             style = MaterialTheme.typography.bodySmall.copy(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 14.sp,
@@ -45,7 +46,7 @@ fun ArticleCard(
             modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
         )
 
-        // 3. Kartu Artikel
+        // 2. Kartu Artikel
         Card(
             shape = RoundedCornerShape(12.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
@@ -59,7 +60,7 @@ fun ArticleCard(
                 ArticleInfo(
                     modifier = Modifier.weight(1f),
                     title = article.title,
-                    status = getArticleStatus(article.id)
+                    status = article.status // 🟢 Gunakan Status Asli dari Enum
                 )
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -70,13 +71,11 @@ fun ArticleCard(
     }
 }
 
-// ... (Sisa kode ArticleInfo, ArticleActions, StatusChip, dll TETAP SAMA) ...
-
 @Composable
 private fun ArticleInfo(
     modifier: Modifier = Modifier,
     title: String,
-    status: String
+    status: NewsStatus // 🟢 Ubah tipe data jadi NewsStatus
 ) {
     Column(
         modifier = modifier,
@@ -88,6 +87,7 @@ private fun ArticleInfo(
             style = MaterialTheme.typography.titleMedium,
             maxLines = 2
         )
+        // 🟢 Panggil Komponen StatusChip yang baru (dari file terpisah)
         StatusChip(status = status)
     }
 }
@@ -103,22 +103,24 @@ private fun ArticleActions(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        // Tombol Edit
         FilledIconButton(
             onClick = onEdit,
             modifier = Modifier.size(36.dp),
             colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = ActionEditBg,
+                containerColor = ActionEditBg, // Pastikan warna ini ada di Theme
                 contentColor = ActionEditIcon
             )
         ) {
             Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(20.dp))
         }
 
+        // Tombol Delete
         FilledIconButton(
             onClick = onDelete,
             modifier = Modifier.size(36.dp),
             colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = ActionDeleteBg,
+                containerColor = ActionDeleteBg, // Pastikan warna ini ada di Theme
                 contentColor = ActionDeleteIcon
             )
         ) {
@@ -127,36 +129,8 @@ private fun ArticleActions(
     }
 }
 
-@Composable
-fun StatusChip(status: String) {
-    val (bgColor, textColor) = when (status) {
-        "Draft" -> Pair(StatusDraftBg, StatusDraftText)
-        "Published" -> Pair(StatusPublishedBg, StatusPublishedText)
-        "Pending" -> Pair(StatusPendingBg, StatusPendingText)
-        else -> Pair(Color.Gray.copy(alpha = 0.2f), Color.DarkGray)
-    }
-
-    Surface(
-        color = bgColor,
-        shape = RoundedCornerShape(50)
-    ) {
-        Text(
-            text = status,
-            color = textColor,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelSmall
-        )
-    }
-}
-
-private fun getArticleStatus(newsId: Int): String {
-    return when (newsId % 3) {
-        0 -> "Draft"
-        1 -> "Published"
-        else -> "Pending"
-    }
-}
+// 🔴 StatusChip LAMA dihapus dari sini karena sudah dipindah ke file baru.
+// 🔴 getArticleStatus LAMA dihapus karena kita sudah pakai data enum asli.
 
 @Preview(showBackground = true, name = "Article Card Preview")
 @Composable
