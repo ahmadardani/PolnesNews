@@ -1,20 +1,24 @@
 package com.kelompok1.polnesnews.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-// 🔴 HAPUS baris ini jika ada: import androidx.compose.material.MaterialTheme
-// 🔴 HAPUS baris ini jika ada: import androidx.compose.material.Card
-
-// 🟢 PASTIKAN pakai import yang ada angka '3' ini:
-import androidx.compose.material3.* import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,107 +34,123 @@ fun ArticleCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    // Tentukan apakah tombol harus dinonaktifkan (misal: sedang direview)
+    val isLocked = article.status == NewsStatus.PENDING_REVIEW ||
+            article.status == NewsStatus.PENDING_DELETION ||
+            article.status == NewsStatus.PENDING_UPDATE
+
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
+            // Opsional: Klik card juga bisa trigger edit jika tidak dikunci
+            .clickable(enabled = !isLocked) { onEdit() }
     ) {
-        // 1. Teks Tanggal
-        Text(
-            text = DummyData.formatDate(article.date),
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold
-            ),
-            modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
-        )
-
-        // 2. Kartu Artikel
-        Card(
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Column {
+            // --- BAGIAN ATAS: GAMBAR & INFO ---
             Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.Top
             ) {
-                ArticleInfo(
-                    modifier = Modifier.weight(1f),
-                    title = article.title,
-                    status = article.status // 🟢 Gunakan Status Asli dari Enum
+                // 1. Gambar Thumbnail
+                Image(
+                    painter = painterResource(id = article.imageRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.LightGray)
                 )
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-                ArticleActions(onEdit = onEdit, onDelete = onDelete)
+                // 2. Info Artikel
+                Column(modifier = Modifier.weight(1f)) {
+                    // Judul
+                    Text(
+                        text = article.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Tanggal
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = DummyData.formatDate(article.date),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Status Chip
+                    StatusChip(status = article.status)
+                }
+            }
+
+            // --- BAGIAN BAWAH: TOMBOL AKSI (OUTLINE) ---
+            // Kita sembunyikan tombol jika statusnya Pending (Locked),
+            // atau bisa juga dimatikan (enabled = false).
+            // Di sini saya pilih disable tombolnya agar user tau fiturnya ada tapi sedang tidak bisa dipakai.
+            Divider(color = Color.Gray.copy(alpha = 0.1f))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                // Tombol Edit
+                OutlinedButton(
+                    onClick = onEdit,
+                    enabled = !isLocked, // Matikan jika locked
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        disabledContentColor = Color.Gray
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                ) {
+                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Edit")
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Tombol Delete
+                OutlinedButton(
+                    onClick = onDelete,
+                    enabled = !isLocked, // Matikan jika locked
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                        disabledContentColor = Color.Gray
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Delete")
+                }
             }
         }
     }
 }
-
-@Composable
-private fun ArticleInfo(
-    modifier: Modifier = Modifier,
-    title: String,
-    status: NewsStatus // 🟢 Ubah tipe data jadi NewsStatus
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = title,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = 2
-        )
-        // 🟢 Panggil Komponen StatusChip yang baru (dari file terpisah)
-        StatusChip(status = status)
-    }
-}
-
-@Composable
-private fun ArticleActions(
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        // Tombol Edit
-        FilledIconButton(
-            onClick = onEdit,
-            modifier = Modifier.size(36.dp),
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = ActionEditBg, // Pastikan warna ini ada di Theme
-                contentColor = ActionEditIcon
-            )
-        ) {
-            Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(20.dp))
-        }
-
-        // Tombol Delete
-        FilledIconButton(
-            onClick = onDelete,
-            modifier = Modifier.size(36.dp),
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = ActionDeleteBg, // Pastikan warna ini ada di Theme
-                contentColor = ActionDeleteIcon
-            )
-        ) {
-            Icon(Icons.Default.Delete, contentDescription = "Delete", modifier = Modifier.size(20.dp))
-        }
-    }
-}
-
-// 🔴 StatusChip LAMA dihapus dari sini karena sudah dipindah ke file baru.
-// 🔴 getArticleStatus LAMA dihapus karena kita sudah pakai data enum asli.
 
 @Preview(showBackground = true, name = "Article Card Preview")
 @Composable
