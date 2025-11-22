@@ -1,159 +1,299 @@
 package com.kelompok1.polnesnews.ui.editor
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.Insights
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
+import com.kelompok1.polnesnews.components.AccountInfoCard
 import com.kelompok1.polnesnews.model.DummyData
+import com.kelompok1.polnesnews.model.News
 import com.kelompok1.polnesnews.model.NewsStatus
-import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
+import com.kelompok1.polnesnews.model.UserRole
+import com.kelompok1.polnesnews.ui.theme.*
 
-// 🔴 PARAMETER bottomNav (currentRoute, onNavigate) dihapus karena logic dipindah ke NavGraph
 @Composable
 fun EditorDashboardScreen(
     editorId: Int,
-    // Kita tinggalkan parameter ini karena tidak lagi dipakai untuk BottomNav
     currentRoute: String,
     onNavigate: (String) -> Unit
 ) {
-    // --- Data Calculation (Tetap sama) ---
-    val newsByEditor = DummyData.newsList.filter { it.authorId == editorId }
-    val ratings = DummyData.commentList.filter { comment ->
-        newsByEditor.any { it.id == comment.newsId }
-    }.map { it.rating }
+    // --- 1. Ambil Data Editor ---
+    val currentUser = DummyData.userList.find { it.id == editorId }
 
-    val averageRating = if (ratings.isNotEmpty()) ratings.average() else 0.0
-    val totalViews = newsByEditor.sumOf { it.views }
-    val totalArticles = newsByEditor.size
-    val approvedCount = newsByEditor.count { it.status == NewsStatus.PUBLISHED }
-    val pendingCount = newsByEditor.count { it.status == NewsStatus.PENDING_REVIEW }
+    // --- 2. Hitung Statistik (Khusus Editor Ini) ---
+    val myArticles = remember { DummyData.newsList.filter { it.authorId == editorId } }
 
-    val performanceText = when {
-        averageRating >= 4.5 -> "Excellent work!"
-        averageRating >= 3.5 -> "Great effort!"
-        averageRating >= 2.5 -> "Fair, keep improving!"
-        else -> "Needs improvement!"
+    val totalViews = myArticles.sumOf { it.views }
+    val totalArticles = myArticles.size
+    val approvedCount = myArticles.count { it.status == NewsStatus.PUBLISHED }
+    val pendingCount = myArticles.count {
+        it.status == NewsStatus.PENDING_REVIEW || it.status == NewsStatus.PENDING_UPDATE
     }
-    // ----------------------------------------
 
-    // 🟢 PERBAIKAN: HANYA TINGGALKAN KONTEN (LazyColumn)
-    // Scaffold, TopBar, BottomBar DIHAPUS karena sudah diurus EditorNavGraph
-    LazyColumn(
-        // LazyColumn sekarang bertugas menerapkan padding estetika 16.dp
-        // Padding sistem (Top Bar & Bottom Nav) akan diurus oleh NavHost di Induk.
-        contentPadding = PaddingValues(16.dp),
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    // Hitung Rating Rata-rata
+    val ratings = remember {
+        DummyData.commentList.filter { comment ->
+            myArticles.any { it.id == comment.newsId }
+        }.map { it.rating }
+    }
+    val averageRating = if (ratings.isNotEmpty()) ratings.average() else 0.0
+
+    // Top 3 Artikel Saya (Berdasarkan Views)
+    val myTopArticles = remember {
+        myArticles.sortedByDescending { it.views }.take(3)
+    }
+
+    // Teks Performa & Warna
+    val (perfText, perfColor, perfIcon) = when {
+        averageRating >= 4.5 -> Triple("Excellent Work!", PolnesGreen, Icons.Outlined.EmojiEvents)
+        averageRating >= 3.5 -> Triple("Great Effort!", Color(0xFFFFA000), Icons.Filled.ThumbUp)
+        else -> Triple("Keep Improving!", Color.Gray, Icons.Outlined.Insights)
+    }
+
+    // === LAYOUT UTAMA ===
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
     ) {
-        item {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 1. Header Akun (Agar personal)
+        AccountInfoCard(
+            fullName = currentUser?.name ?: "Editor",
+            role = "Editor",
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            // --- SECTION 1: OVERVIEW STATS ---
             Text(
-                text = "Your Performance Overview",
-                fontSize = 20.sp,
+                text = "Performance Overview",
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 0.dp)
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
-        }
 
-        // Grup Row 1
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                DashboardCard("Avg Rating", String.format("%.1f", averageRating))
-                DashboardCard("Total Views", totalViews.toString())
+            // Row 1: Views & Rating
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                EditorStatCard(
+                    modifier = Modifier.weight(1f),
+                    label = "Total Views",
+                    value = totalViews.toString(),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                EditorStatCard(
+                    modifier = Modifier.weight(1f),
+                    label = "Avg Rating",
+                    value = String.format("%.1f", averageRating),
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    icon = Icons.Default.Star
+                )
             }
-        }
 
-        // Grup Row 2
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                DashboardCard("Articles", totalArticles.toString())
-                DashboardCard("Approved", approvedCount.toString())
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Row 2: Published & Pending
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                EditorStatCard(
+                    modifier = Modifier.weight(1f),
+                    label = "Published",
+                    value = approvedCount.toString(),
+                    containerColor = StatusPublishedBg, // Hijau Pucat
+                    contentColor = StatusPublishedText
+                )
+                EditorStatCard(
+                    modifier = Modifier.weight(1f),
+                    label = "Pending",
+                    value = pendingCount.toString(),
+                    containerColor = StatusPendingBg, // Biru Pucat
+                    contentColor = StatusPendingText
+                )
             }
-        }
 
-        // Grup Row 3
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                DashboardCard("Pending", pendingCount.toString())
-            }
-        }
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Performance Text
-        item {
-            Text(
-                text = "Performance Status",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
-
-        // Box Card berisi nilai
-        item {
+            // --- SECTION 2: PERFORMANCE INSIGHT ---
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                ),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 24.dp),
-                    contentAlignment = Alignment.Center
+                Row(
+                    modifier = Modifier.padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = performanceText,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Icon(
+                        imageVector = perfIcon,
+                        contentDescription = null,
+                        tint = perfColor,
+                        modifier = Modifier.size(32.dp)
                     )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = "Performance Status",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = perfText,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // --- SECTION 3: TOP ARTICLES ---
+            SectionHeader(title = "Your Top Articles", icon = Icons.Outlined.Visibility)
+
+            if (myTopArticles.isEmpty()) {
+                Text("No articles yet.", color = Color.Gray)
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    myTopArticles.forEachIndexed { index, news ->
+                        EditorRankCard(
+                            rank = index + 1,
+                            title = news.title,
+                            views = news.views
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }
 
-// ... DashboardCard (tetap sama) ...
+// ------------------------------------------------
+// HELPER COMPONENTS (UI WIDGETS)
+// ------------------------------------------------
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardCard(title: String, value: String) {
+fun SectionHeader(title: String, icon: ImageVector) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 12.dp)) {
+        Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+    }
+}
+
+@Composable
+fun EditorStatCard(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    containerColor: Color,
+    contentColor: Color,
+    icon: ImageVector? = null
+) {
     Card(
-        modifier = Modifier
-            .width(150.dp)
-            .height(100.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        modifier = modifier.height(100.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = title, fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = value, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (icon != null) {
+                    Icon(imageVector = icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+                Text(
+                    text = value,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor
+                )
+            }
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = contentColor.copy(alpha = 0.8f)
+            )
         }
     }
 }
 
+@Composable
+fun EditorRankCard(rank: Int, title: String, views: Int) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(1.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(vertical = 12.dp, horizontal = 16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "#$rank",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "$views views",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable

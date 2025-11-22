@@ -211,7 +211,7 @@ fun AddANewArticleScreen(
             )
 
             // --- INPUT VIDEO ---
-            Text("Video", style = MaterialTheme.typography.titleMedium)
+            Text("Video (Youtube Link)", style = MaterialTheme.typography.titleMedium)
             OutlinedTextField(
                 value = youtubeLink,
                 onValueChange = { youtubeLink = it },
