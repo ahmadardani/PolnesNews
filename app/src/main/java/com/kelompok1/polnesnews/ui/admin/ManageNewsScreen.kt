@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -34,6 +36,7 @@ import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.News
 import com.kelompok1.polnesnews.model.NewsStatus
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
+import kotlinx.coroutines.launch
 
 // Helper untuk cari nama author
 private fun getAuthorName(authorId: Int): String {
@@ -43,13 +46,16 @@ private fun getAuthorName(authorId: Int): String {
 @Composable
 fun ManageNewsScreen() {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope() // Untuk animasi scroll tab saat diklik
 
     // 1. Data Source
     val newsList = remember { mutableStateListOf<News>().apply { addAll(DummyData.newsList) } }
 
-    // 2. UI State
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    // 2. UI State & Pager
     val tabs = listOf("Needs Review", "All News")
+    // 🟢 Menggunakan PagerState untuk mengontrol slide
+    val pagerState = rememberPagerState(pageCount = { tabs.size })
+
     var searchQuery by remember { mutableStateOf("") }
 
     // 3. Pagination State
@@ -59,35 +65,10 @@ fun ManageNewsScreen() {
     var articleToDelete by remember { mutableStateOf<News?>(null) }
     var articleToReview by remember { mutableStateOf<News?>(null) }
 
-    // Reset pagination saat Tab atau Search berubah
-    LaunchedEffect(selectedTabIndex, searchQuery) {
+    // Reset pagination saat Tab (Page) atau Search berubah
+    LaunchedEffect(pagerState.currentPage, searchQuery) {
         itemsToShow = 10
     }
-
-    // 5. Filter Logic
-    val filteredList = remember(selectedTabIndex, searchQuery, newsList.toList()) {
-        val list = if (selectedTabIndex == 0) {
-            // Needs Review
-            newsList.filter {
-                it.status == NewsStatus.PENDING_REVIEW ||
-                        it.status == NewsStatus.PENDING_DELETION ||
-                        it.status == NewsStatus.PENDING_UPDATE
-            }
-        } else {
-            // All News
-            if (searchQuery.isBlank()) newsList
-            else newsList.filter {
-                val authorName = getAuthorName(it.authorId)
-                it.title.contains(searchQuery, ignoreCase = true) ||
-                        authorName.contains(searchQuery, ignoreCase = true)
-            }
-        }
-        list
-    }
-
-    // 6. Pagination Logic
-    val paginatedList = filteredList.take(itemsToShow)
-    val hasMoreData = filteredList.size > itemsToShow
 
     // --- DIALOGS ---
     if (articleToDelete != null) {
@@ -135,28 +116,35 @@ fun ManageNewsScreen() {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Tab Row
+        // Tab Row (Sinkron dengan Pager)
         TabRow(
-            selectedTabIndex = selectedTabIndex,
+            selectedTabIndex = pagerState.currentPage,
             containerColor = MaterialTheme.colorScheme.surface
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
-                    selected = selectedTabIndex == index,
-                    onClick = { selectedTabIndex = index },
+                    selected = pagerState.currentPage == index,
+                    onClick = {
+                        // Saat Tab diklik, slide pager ke halaman tersebut
+                        scope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
+                    },
                     text = {
                         Text(
                             text = title,
-                            fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
-                            color = if (selectedTabIndex == index) MaterialTheme.colorScheme.primary else Color.Gray
+                            fontWeight = if (pagerState.currentPage == index) FontWeight.Bold else FontWeight.Normal,
+                            color = if (pagerState.currentPage == index) MaterialTheme.colorScheme.primary else Color.Gray
                         )
                     }
                 )
             }
         }
 
-        // Search Bar
-        if (selectedTabIndex == 1) {
+        // Search Bar (Hanya muncul jika sedang di Halaman 1 / All News)
+        // Kita taruh di luar Pager agar tidak ikut geser (sticky) atau bisa juga di dalam pager.
+        // Disini saya taruh luar agar transisi smooth.
+        if (pagerState.currentPage == 1) {
             PaddingValues(16.dp).let {
                 OutlinedTextField(
                     value = searchQuery,
@@ -183,50 +171,83 @@ fun ManageNewsScreen() {
             }
         }
 
-        // List Content
-        if (paginatedList.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Article, null, tint = Color.Gray, modifier = Modifier.size(48.dp))
-                    Text("No data found.", color = Color.Gray)
+        // 🟢 HORIZONTAL PAGER (Area Konten yang bisa di-swipe)
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.Top
+        ) { page ->
+
+            // Logic Filter per Halaman
+            // Perhatikan: Kita gunakan 'page' (parameter pager), bukan pagerState.currentPage
+            // agar data tiap halaman dirender dengan benar saat transisi swipe.
+            val filteredList = remember(page, searchQuery, newsList.toList()) {
+                if (page == 0) {
+                    // Page 0: Needs Review
+                    newsList.filter {
+                        it.status == NewsStatus.PENDING_REVIEW ||
+                                it.status == NewsStatus.PENDING_DELETION ||
+                                it.status == NewsStatus.PENDING_UPDATE
+                    }
+                } else {
+                    // Page 1: All News
+                    if (searchQuery.isBlank()) newsList
+                    else newsList.filter {
+                        val authorName = getAuthorName(it.authorId)
+                        it.title.contains(searchQuery, ignoreCase = true) ||
+                                authorName.contains(searchQuery, ignoreCase = true)
+                    }
                 }
             }
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(paginatedList) { article ->
-                    AdminNewsItem(
-                        article = article,
-                        isReviewMode = (selectedTabIndex == 0),
-                        onActionClick = {
-                            if (selectedTabIndex == 0) articleToReview = article
-                            else Toast.makeText(context, "Edit feature coming soon", Toast.LENGTH_SHORT).show()
-                        },
-                        onDeleteClick = { articleToDelete = article }
-                    )
-                }
 
-                // Pagination Button
-                if (hasMoreData) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            TextButton(onClick = { itemsToShow += 10 }) {
-                                Text("Load More (${filteredList.size - itemsToShow} remaining)")
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+            val paginatedList = filteredList.take(itemsToShow)
+            val hasMoreData = filteredList.size > itemsToShow
+
+            // Konten List
+            if (paginatedList.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.Article, null, tint = Color.Gray, modifier = Modifier.size(48.dp))
+                        Text("No data found.", color = Color.Gray)
+                    }
+                }
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(paginatedList) { article ->
+                        AdminNewsItem(
+                            article = article,
+                            isReviewMode = (page == 0), // Gunakan 'page' untuk cek mode
+                            onActionClick = {
+                                if (page == 0) articleToReview = article
+                                else Toast.makeText(context, "Edit feature coming soon", Toast.LENGTH_SHORT).show()
+                            },
+                            onDeleteClick = { articleToDelete = article }
+                        )
+                    }
+
+                    if (hasMoreData) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                TextButton(onClick = { itemsToShow += 10 }) {
+                                    Text("Load More (${filteredList.size - itemsToShow} remaining)")
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+                                }
                             }
                         }
                     }
-                }
 
-                item { Spacer(modifier = Modifier.height(20.dp)) }
+                    item { Spacer(modifier = Modifier.height(20.dp)) }
+                }
             }
         }
     }
@@ -247,18 +268,13 @@ fun AdminNewsItem(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier
             .fillMaxWidth()
-            // Jika Review Mode, klik kartu = Action (Review). Jika All News, klik kartu tidak ngapa-ngapain (aksi di tombol bawah)
             .then(if (isReviewMode) Modifier.clickable { onActionClick() } else Modifier)
     ) {
-        // Gunakan Column agar bisa menumpuk Konten (atas) dan Tombol (bawah)
         Column {
-
-            // --- BAGIAN ATAS: KONTEN UTAMA ---
             Row(
                 modifier = Modifier.padding(12.dp),
                 verticalAlignment = Alignment.Top
             ) {
-                // 1. Gambar
                 Image(
                     painter = painterResource(id = article.imageRes),
                     contentDescription = null,
@@ -271,9 +287,7 @@ fun AdminNewsItem(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // 2. Kolom Informasi
                 Column(modifier = Modifier.weight(1f)) {
-                    // Judul
                     Text(
                         text = article.title,
                         style = MaterialTheme.typography.titleMedium,
@@ -281,87 +295,51 @@ fun AdminNewsItem(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-
                     Spacer(modifier = Modifier.height(6.dp))
-
-                    // Tanggal
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.DateRange, null, modifier = Modifier.size(14.dp), tint = Color.Gray)
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = DummyData.formatDate(article.date),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.Gray
-                        )
+                        Text(text = DummyData.formatDate(article.date), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
                     }
-
                     Spacer(modifier = Modifier.height(4.dp))
-
-                    // Penulis
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Person, null, modifier = Modifier.size(14.dp), tint = Color.Gray)
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = authorName,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.Gray
-                        )
+                        Text(text = authorName, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
                     }
-
                     Spacer(modifier = Modifier.height(8.dp))
-
-                    // Status
                     StatusChip(status = article.status)
                 }
 
-                // Icon Panah Kanan (HANYA UNTUK MODE REVIEW)
                 if (isReviewMode) {
                     Box(
-                        modifier = Modifier
-                            .height(80.dp) // Tinggi disamakan dengan gambar agar center
-                            .padding(start = 8.dp),
+                        modifier = Modifier.height(80.dp).padding(start = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = "Review",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        Icon(Icons.Default.ChevronRight, contentDescription = "Review", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
 
-            // --- BAGIAN BAWAH: TOMBOL AKSI (HANYA UNTUK MODE ALL NEWS) ---
             if (!isReviewMode) {
-                Divider(color = Color.Gray.copy(alpha = 0.1f)) // Garis pemisah tipis
-
+                Divider(color = Color.Gray.copy(alpha = 0.1f))
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.End // Rata Kanan
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    // Tombol EDIT (Outline)
                     OutlinedButton(
                         onClick = onActionClick,
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.primary
-                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Edit")
                     }
-
                     Spacer(modifier = Modifier.width(12.dp))
-
-                    // Tombol DELETE (Outline Merah)
                     OutlinedButton(
                         onClick = onDeleteClick,
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
                     ) {
                         Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -402,9 +380,7 @@ fun ReviewArticleDialog(
                             .background(Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(50))
                     ) { Icon(Icons.Default.Close, null, tint = Color.White) }
                 }
-                Column(
-                    modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp)
-                ) {
+                Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp)) {
                     val reqColor = if (article.status == NewsStatus.PENDING_DELETION) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                     val reqText = when(article.status) {
                         NewsStatus.PENDING_DELETION -> "REQUEST: DELETION"

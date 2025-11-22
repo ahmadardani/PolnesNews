@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,43 +30,30 @@ import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.User
 import com.kelompok1.polnesnews.model.UserRole
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun ManageUsersScreen() {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    // 1. State Data User (Menggunakan mutableStateListOf agar UI update saat diedit/hapus)
-    // Kita ambil data awal dari DummyData, tapi kita filter Admin agar tidak bisa diedit
+    // 1. State Data User
     val usersState = remember {
         mutableStateListOf<User>().apply {
             addAll(DummyData.userList.filter { it.role != UserRole.ADMIN })
         }
     }
 
-    // 2. State untuk UI Control
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    // 2. UI State & Pager
     val tabTitles = listOf("All", "User", "Editor")
+    // 🟢 Pager State untuk swipe tabs
+    val pagerState = rememberPagerState(pageCount = { tabTitles.size })
+
     var searchQuery by remember { mutableStateOf("") }
 
     // 3. State untuk Dialog Edit & Hapus
-    var userToDelete by remember { mutableStateOf<User?>(null) } // Jika tidak null, dialog hapus muncul
-    var userToEdit by remember { mutableStateOf<User?>(null) }   // Jika tidak null, dialog edit role muncul
-
-    // 4. Logika Filter (Tab + Search)
-    val displayedUsers = remember(selectedTabIndex, searchQuery, usersState.toList()) {
-        // Filter Tab
-        val byRole = when (selectedTabIndex) {
-            0 -> usersState // All
-            1 -> usersState.filter { it.role == UserRole.USER } // User only
-            2 -> usersState.filter { it.role == UserRole.EDITOR } // Editor only
-            else -> usersState
-        }
-        // Filter Search
-        if (searchQuery.isBlank()) byRole
-        else byRole.filter {
-            it.name.contains(searchQuery, ignoreCase = true)
-        }
-    }
+    var userToDelete by remember { mutableStateOf<User?>(null) }
+    var userToEdit by remember { mutableStateOf<User?>(null) }
 
     // --- DIALOG KONFIRMASI HAPUS ---
     if (userToDelete != null) {
@@ -72,7 +61,6 @@ fun ManageUsersScreen() {
             showDialog = true,
             onDismiss = { userToDelete = null },
             onConfirm = {
-                // Logika Hapus dari List
                 usersState.remove(userToDelete)
                 Toast.makeText(context, "User ${userToDelete?.name} deleted", Toast.LENGTH_SHORT).show()
                 userToDelete = null
@@ -80,16 +68,14 @@ fun ManageUsersScreen() {
         )
     }
 
-    // --- DIALOG EDIT ROLE (PROMOTE/DEMOTE) ---
+    // --- DIALOG EDIT ROLE ---
     if (userToEdit != null) {
         EditUserRoleDialog(
             user = userToEdit!!,
             onDismiss = { userToEdit = null },
             onSave = { newRole ->
-                // Logika Update Role
                 val index = usersState.indexOfFirst { it.id == userToEdit!!.id }
                 if (index != -1) {
-                    // Update item di dalam list state
                     val updatedUser = usersState[index].copy(role = newRole)
                     usersState[index] = updatedUser
                     Toast.makeText(context, "Role updated to ${newRole.name}", Toast.LENGTH_SHORT).show()
@@ -107,25 +93,27 @@ fun ManageUsersScreen() {
     ) {
         // Tab Row
         TabRow(
-            selectedTabIndex = selectedTabIndex,
+            selectedTabIndex = pagerState.currentPage,
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.primary
         ) {
             tabTitles.forEachIndexed { index, title ->
                 Tab(
-                    selected = selectedTabIndex == index,
-                    onClick = { selectedTabIndex = index },
+                    selected = pagerState.currentPage == index,
+                    onClick = {
+                        scope.launch { pagerState.animateScrollToPage(index) }
+                    },
                     text = {
                         Text(
                             text = title,
-                            fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                            fontWeight = if (pagerState.currentPage == index) FontWeight.Bold else FontWeight.Normal
                         )
                     }
                 )
             }
         }
 
-        // Search Bar (Background Putih)
+        // Search Bar (Global untuk semua tab)
         PaddingValues(16.dp).let { padding ->
             OutlinedTextField(
                 value = searchQuery,
@@ -145,50 +133,62 @@ fun ManageUsersScreen() {
                 singleLine = true,
                 shape = RoundedCornerShape(24.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    // ✅ BACKGROUND PUTIH SOLID
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
                     disabledContainerColor = Color.White,
-                    // Border Colors
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
                     focusedBorderColor = MaterialTheme.colorScheme.primary
                 )
             )
         }
 
-        // List User
-        if (displayedUsers.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No users found.", color = Color.Gray)
-            }
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(displayedUsers) { user ->
-                    AdminUserCard(
-                        user = user,
-                        onEditClick = {
-                            // Trigger Dialog Edit Role
-                            userToEdit = user
-                        },
-                        onDeleteClick = {
-                            // Trigger Dialog Hapus
-                            userToDelete = user
-                        }
-                    )
+        // 🟢 HORIZONTAL PAGER
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.Top
+        ) { page ->
+
+            // Logika Filter per Halaman (Page)
+            val displayedUsers = remember(page, searchQuery, usersState.toList()) {
+                // 1. Filter Role
+                val byRole = when (page) {
+                    0 -> usersState // All
+                    1 -> usersState.filter { it.role == UserRole.USER } // User only
+                    2 -> usersState.filter { it.role == UserRole.EDITOR } // Editor only
+                    else -> usersState
                 }
-                item { Spacer(modifier = Modifier.height(80.dp)) }
+                // 2. Filter Search
+                if (searchQuery.isBlank()) byRole
+                else byRole.filter {
+                    it.name.contains(searchQuery, ignoreCase = true)
+                }
+            }
+
+            if (displayedUsers.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No users found.", color = Color.Gray)
+                }
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(displayedUsers) { user ->
+                        AdminUserCard(
+                            user = user,
+                            onEditClick = { userToEdit = user },
+                            onDeleteClick = { userToDelete = user }
+                        )
+                    }
+                    item { Spacer(modifier = Modifier.height(80.dp)) }
+                }
             }
         }
     }
 }
 
-/**
- * Dialog Khusus untuk Mengubah Role User (User <-> Editor)
- */
 @Composable
 fun EditUserRoleDialog(
     user: User,
@@ -204,8 +204,6 @@ fun EditUserRoleDialog(
             Column {
                 Text("Select new role:", style = MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-
-                // Pilihan Role: User & Editor (Admin tidak ditampilkan karena ini manage users)
                 listOf(UserRole.USER, UserRole.EDITOR).forEach { role ->
                     Row(
                         Modifier
@@ -220,10 +218,10 @@ fun EditUserRoleDialog(
                     ) {
                         RadioButton(
                             selected = (role == selectedRole),
-                            onClick = null // Ditangani oleh Row selectable
+                            onClick = null
                         )
                         Text(
-                            text = role.name, // Menampilkan "USER" atau "EDITOR"
+                            text = role.name,
                             modifier = Modifier.padding(start = 8.dp)
                         )
                     }
@@ -243,7 +241,6 @@ fun EditUserRoleDialog(
     )
 }
 
-// --- PREVIEW ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
