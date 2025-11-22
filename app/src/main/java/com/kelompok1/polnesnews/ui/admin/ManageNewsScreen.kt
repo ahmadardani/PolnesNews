@@ -202,7 +202,7 @@ fun ManageNewsScreen() {
                         isReviewMode = (selectedTabIndex == 0),
                         onActionClick = {
                             if (selectedTabIndex == 0) articleToReview = article
-                            else Toast.makeText(context, "Edit soon", Toast.LENGTH_SHORT).show()
+                            else Toast.makeText(context, "Edit feature coming soon", Toast.LENGTH_SHORT).show()
                         },
                         onDeleteClick = { articleToDelete = article }
                     )
@@ -247,84 +247,126 @@ fun AdminNewsItem(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { if (isReviewMode) onActionClick() }
+            // Jika Review Mode, klik kartu = Action (Review). Jika All News, klik kartu tidak ngapa-ngapain (aksi di tombol bawah)
+            .then(if (isReviewMode) Modifier.clickable { onActionClick() } else Modifier)
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            // 1. Gambar
-            Image(
-                painter = painterResource(id = article.imageRes),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.LightGray)
-            )
+        // Gunakan Column agar bisa menumpuk Konten (atas) dan Tombol (bawah)
+        Column {
 
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // 2. Kolom Informasi (Layout Baru: Judul -> Tanggal -> Penulis -> Status)
-            Column(modifier = Modifier.weight(1f)) {
-
-                // A. Judul
-                Text(
-                    text = article.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+            // --- BAGIAN ATAS: KONTEN UTAMA ---
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                // 1. Gambar
+                Image(
+                    painter = painterResource(id = article.imageRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.LightGray)
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-                // B. Tanggal
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.DateRange, null, modifier = Modifier.size(14.dp), tint = Color.Gray)
-                    Spacer(modifier = Modifier.width(4.dp))
+                // 2. Kolom Informasi
+                Column(modifier = Modifier.weight(1f)) {
+                    // Judul
                     Text(
-                        text = DummyData.formatDate(article.date),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray
+                        text = article.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Tanggal
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.DateRange, null, modifier = Modifier.size(14.dp), tint = Color.Gray)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = DummyData.formatDate(article.date),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Penulis
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Person, null, modifier = Modifier.size(14.dp), tint = Color.Gray)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = authorName,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Status
+                    StatusChip(status = article.status)
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // C. Penulis
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Person, null, modifier = Modifier.size(14.dp), tint = Color.Gray)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = authorName,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray
-                    )
+                // Icon Panah Kanan (HANYA UNTUK MODE REVIEW)
+                if (isReviewMode) {
+                    Box(
+                        modifier = Modifier
+                            .height(80.dp) // Tinggi disamakan dengan gambar agar center
+                            .padding(start = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = "Review",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // D. Status (Sekarang di paling bawah)
-                StatusChip(status = article.status)
             }
 
-            // 3. Tombol Aksi
-            if (isReviewMode) {
-                IconButton(
-                    onClick = onActionClick,
-                    modifier = Modifier.align(Alignment.CenterVertically)
+            // --- BAGIAN BAWAH: TOMBOL AKSI (HANYA UNTUK MODE ALL NEWS) ---
+            if (!isReviewMode) {
+                Divider(color = Color.Gray.copy(alpha = 0.1f)) // Garis pemisah tipis
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.End // Rata Kanan
                 ) {
-                    Icon(Icons.Default.ChevronRight, contentDescription = "Review", tint = MaterialTheme.colorScheme.primary)
-                }
-            } else {
-                Column {
-                    IconButton(onClick = onActionClick, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.secondary)
+                    // Tombol EDIT (Outline)
+                    OutlinedButton(
+                        onClick = onActionClick,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Edit")
                     }
-                    IconButton(onClick = onDeleteClick, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    // Tombol DELETE (Outline Merah)
+                    OutlinedButton(
+                        onClick = onDeleteClick,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Delete")
                     }
                 }
             }
