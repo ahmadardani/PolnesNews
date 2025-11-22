@@ -47,33 +47,11 @@ fun AdminSettingsScreen(
             role = "Administrator"
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // --- Pengaturan Sistem (Khusus Admin) ---
-        Text(
-            text = "System Settings",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 18.sp,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-
-        SettingsButton(
-            text = "App Configuration",
-            icon = Icons.Outlined.SettingsSuggest,
-            onClick = { /* TODO */ }
-        )
-        SettingsButton(
-            text = "Audit Logs",
-            icon = Icons.Outlined.History,
-            onClick = { /* TODO */ }
-        )
-
         Spacer(modifier = Modifier.height(16.dp))
 
         // --- Pengaturan Umum ---
         Text(
-            text = "General",
+            text = "More Settings",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             fontSize = 18.sp,
@@ -86,7 +64,7 @@ fun AdminSettingsScreen(
             onClick = { /* TODO */ }
         )
         SettingsButton(
-            text = "About App",
+            text = "About",
             icon = Icons.Outlined.Info,
             onClick = { /* TODO */ }
         )
