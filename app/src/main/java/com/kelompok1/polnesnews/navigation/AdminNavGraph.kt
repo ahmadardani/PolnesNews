@@ -14,17 +14,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.kelompok1.polnesnews.components.AdminBottomNav
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.model.User
-import com.kelompok1.polnesnews.ui.admin.AddANewCategoryScreen // 🟢 Import
+import com.kelompok1.polnesnews.model.DummyData // Pastikan import ini ada untuk logika hapus
+import com.kelompok1.polnesnews.ui.admin.AddANewCategoryScreen
 import com.kelompok1.polnesnews.ui.admin.AdminDashboardScreen
-import com.kelompok1.polnesnews.ui.admin.ManageCategoriesScreen // 🟢 Import
+import com.kelompok1.polnesnews.ui.admin.ManageCategoriesScreen
 import com.kelompok1.polnesnews.ui.admin.ManageNewsScreen
-import com.kelompok1.polnesnews.ui.admin.ManageUsersScreen // 🟢 Import
-import com.kelompok1.polnesnews.ui.user.SettingsScreen
-import androidx.navigation.NavType // 👈 Wajib
-import androidx.navigation.navArgument // 👈 Wajib
+import com.kelompok1.polnesnews.ui.admin.ManageUsersScreen
 import com.kelompok1.polnesnews.ui.admin.AdminSettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,9 +42,10 @@ fun AdminNavGraph(
     val currentRoute = navBackStackEntry?.destination?.route ?: "Dashboard"
 
     // Daftar layar utama yang menampilkan Bottom Bar & Top Bar Induk
-    // "add_category" TIDAK masuk sini, karena dia punya Scaffold sendiri (pola Form)
     val adminMainScreens = listOf("Dashboard", "News", "Categories", "Users", "Settings")
-    val showBars = currentRoute in adminMainScreens
+    // Cek sederhana: jika route mengandung "?", ambil kata depannya saja agar bottom bar tetap muncul jika perlu (opsional)
+    // Tapi untuk kasus add_category, kita memang mau menyembunyikan bottom bar.
+    val showBars = adminMainScreens.any { currentRoute.startsWith(it) } && !currentRoute.startsWith("add_category")
 
     val topBarTitle = when (currentRoute) {
         "Dashboard" -> "Admin Dashboard"
@@ -100,12 +101,17 @@ fun AdminNavGraph(
             composable("Categories") {
                 ManageCategoriesScreen(
                     onAddCategoryClick = {
-                        // Navigasi ke halaman form tambah kategori
+                        // Navigasi Tambah Baru (Tanpa ID)
                         adminNavController.navigate("add_category")
+                    },
+                    onEditCategoryClick = { categoryId ->
+                        // ✅ Navigasi Edit: Kirim ID ke URL route
+                        adminNavController.navigate("add_category?categoryId=$categoryId")
                     }
                 )
             }
 
+            // ROUTE FORM (ADD / EDIT)
             composable(
                 route = "add_category?categoryId={categoryId}",
                 arguments = listOf(
@@ -118,30 +124,27 @@ fun AdminNavGraph(
                 val argId = backStackEntry.arguments?.getInt("categoryId") ?: -1
                 val finalId = if (argId == -1) null else argId
 
-                // 🟢 PERSIAPAN FRONT-END UNTUK OPSI A
                 AddANewCategoryScreen(
                     categoryId = finalId,
                     onBackClick = { adminNavController.popBackStack() },
                     onSubmitClick = {
-                        // TODO: Logic simpan (Nanti konek API)
-                        Toast.makeText(context, "Category Saved!", Toast.LENGTH_SHORT).show()
+                        // TODO: Logic simpan ke Database/API
+                        val msg = if (finalId == null) "Category Added!" else "Category Updated!"
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                         adminNavController.popBackStack()
                     },
                     onDeleteClick = {
-                        // 🟢 LOGIKA PROTEKSI (OPSI A)
                         if (finalId != null) {
-                            // 1. Cek apakah kategori ini dipakai di berita manapun
-                            val isCategoryUsed = com.kelompok1.polnesnews.model.DummyData.newsList.any { it.categoryId == finalId }
+                            // Cek apakah kategori dipakai
+                            val isCategoryUsed = DummyData.newsList.any { it.categoryId == finalId }
 
                             if (isCategoryUsed) {
-                                // 🔴 KASUS TOLAK: Beri tahu user kenapa tidak bisa dihapus
                                 Toast.makeText(
                                     context,
                                     "Gagal! Kategori ini masih digunakan oleh artikel lain.",
                                     Toast.LENGTH_LONG
                                 ).show()
                             } else {
-                                // 🟢 KASUS BOLEH: Hapus (Simulasi)
                                 Toast.makeText(context, "Category Deleted!", Toast.LENGTH_SHORT).show()
                                 adminNavController.popBackStack()
                             }
@@ -149,6 +152,7 @@ fun AdminNavGraph(
                     }
                 )
             }
+
             // 4. MANAGE USERS
             composable("Users") {
                 ManageUsersScreen()
@@ -156,9 +160,8 @@ fun AdminNavGraph(
 
             // 5. SETTINGS
             composable("Settings") {
-                // ✅ PERBAIKAN: Panggil screen khusus Admin dan oper currentUser
                 AdminSettingsScreen(
-                    currentUser = currentUser, // Pastikan data user dioper ke sini
+                    currentUser = currentUser,
                     onLogout = onLogout
                 )
             }

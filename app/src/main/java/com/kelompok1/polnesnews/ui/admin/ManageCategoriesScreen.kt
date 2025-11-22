@@ -16,7 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kelompok1.polnesnews.components.AdminBottomNav
 import com.kelompok1.polnesnews.components.AdminCategoryCard
-import com.kelompok1.polnesnews.components.DeleteConfirmationDialog // 🟢 Import komponen dialog
+import com.kelompok1.polnesnews.components.DeleteConfirmationDialog
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.model.Category
 import com.kelompok1.polnesnews.model.DummyData
@@ -24,22 +24,21 @@ import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 
 @Composable
 fun ManageCategoriesScreen(
-    onAddCategoryClick: () -> Unit
+    onAddCategoryClick: () -> Unit,
+    onEditCategoryClick: (Int) -> Unit // ✅ Parameter baru untuk navigasi Edit
 ) {
     val categories = DummyData.categoryList
     val context = LocalContext.current
 
     // State untuk menyimpan kategori yang sedang ingin dihapus
-    // Jika null, artinya dialog sedang tidak muncul
     var categoryToDelete by remember { mutableStateOf<Category?>(null) }
 
     // --- Dialog Konfirmasi Hapus ---
     if (categoryToDelete != null) {
         DeleteConfirmationDialog(
             showDialog = true,
-            onDismiss = { categoryToDelete = null }, // Tutup dialog
+            onDismiss = { categoryToDelete = null },
             onConfirm = {
-                // TODO: Logic Hapus Kategori ke Database
                 // Simulasi: Cek apakah kategori dipakai
                 val isUsed = DummyData.newsList.any { it.categoryId == categoryToDelete?.id }
 
@@ -49,13 +48,12 @@ fun ManageCategoriesScreen(
                     Toast.makeText(context, "Category Deleted: ${categoryToDelete?.name}", Toast.LENGTH_SHORT).show()
                 }
 
-                // Tutup dialog setelah konfirmasi
                 categoryToDelete = null
             }
         )
     }
 
-    // Layout Utama (Content-Only)
+    // Layout Utama
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -68,13 +66,10 @@ fun ManageCategoriesScreen(
                 AdminCategoryCard(
                     category = category,
                     onEditClick = {
-                        // TODO: Navigasi ke Edit (dengan ID)
-                        // onEditCategory(category.id)
-                        Toast.makeText(context, "Edit: ${category.name}", Toast.LENGTH_SHORT).show()
+                        // ✅ Memanggil fungsi navigasi dengan mengirim ID kategori
+                        onEditCategoryClick(category.id)
                     },
                     onDeleteClick = {
-                        // 🟢 Saat tombol hapus diklik, jangan langsung hapus
-                        // Tapi simpan ke state 'categoryToDelete' agar dialog muncul
                         categoryToDelete = category
                     }
                 )
@@ -108,7 +103,10 @@ private fun ManageCategoriesFullPreview() {
             }
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
-                ManageCategoriesScreen(onAddCategoryClick = {})
+                ManageCategoriesScreen(
+                    onAddCategoryClick = {},
+                    onEditCategoryClick = {} // Dummy action
+                )
             }
         }
     }
