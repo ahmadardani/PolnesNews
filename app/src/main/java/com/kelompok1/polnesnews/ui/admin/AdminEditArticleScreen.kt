@@ -71,7 +71,6 @@ fun AdminEditArticleScreen(
                 title = "Edit Article",
                 onBack = onBackClick,
                 windowInsets = WindowInsets(0.dp)
-                // Actions kosong -> Tidak ada tombol delete di atas
             )
         },
         floatingActionButton = {
@@ -113,7 +112,7 @@ fun AdminEditArticleScreen(
                 singleLine = true
             )
 
-            // --- INPUT IMAGE (Style Kotak Preview) ---
+            // --- INPUT IMAGE ---
             Text("Image", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Box(
                 contentAlignment = Alignment.Center,
@@ -130,7 +129,6 @@ fun AdminEditArticleScreen(
                     .clickable { launcher.launch("image/*") }
             ) {
                 if (selectedImageUri != null) {
-                    // 1. Gambar Baru (Upload)
                     Image(
                         painter = rememberAsyncImagePainter(selectedImageUri),
                         contentDescription = "Selected Image",
@@ -144,7 +142,6 @@ fun AdminEditArticleScreen(
                         Text("Tap to change", color = Color.White, style = MaterialTheme.typography.labelMedium)
                     }
                 } else if (articleToEdit != null) {
-                    // 2. Gambar Lama (Existing)
                     Image(
                         painter = painterResource(id = articleToEdit.imageRes),
                         contentDescription = "Current Image",
@@ -158,7 +155,6 @@ fun AdminEditArticleScreen(
                         Text("Tap to change", color = Color.White, style = MaterialTheme.typography.labelMedium)
                     }
                 } else {
-                    // 3. Placeholder
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             imageVector = Icons.Default.AddPhotoAlternate,
