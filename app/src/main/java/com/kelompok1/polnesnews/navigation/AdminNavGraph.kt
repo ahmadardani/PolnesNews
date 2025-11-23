@@ -19,14 +19,10 @@ import androidx.navigation.navArgument
 import com.kelompok1.polnesnews.components.AdminBottomNav
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.model.User
-import com.kelompok1.polnesnews.model.DummyData
-import com.kelompok1.polnesnews.ui.admin.AddANewCategoryScreen
-import com.kelompok1.polnesnews.ui.admin.AdminDashboardScreen
-import com.kelompok1.polnesnews.ui.admin.ManageCategoriesScreen
-import com.kelompok1.polnesnews.ui.admin.ManageNewsScreen
-import com.kelompok1.polnesnews.ui.admin.ManageUsersScreen
-import com.kelompok1.polnesnews.ui.admin.AdminSettingsScreen
-import com.kelompok1.polnesnews.ui.admin.AdminEditArticleScreen // 🟢 Import AdminEditArticleScreen
+import com.kelompok1.polnesnews.ui.admin.*
+// 🟢 Import Layar Umum
+import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
+import com.kelompok1.polnesnews.ui.common.AboutScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,11 +37,13 @@ fun AdminNavGraph(
     val navBackStackEntry by adminNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "Dashboard"
 
-    // Logic Sembunyikan Bottom Bar & Top Bar Induk di halaman Detail (Add/Edit)
     val adminMainScreens = listOf("Dashboard", "News", "Categories", "Users", "Settings")
+
+    // Pastikan Privacy & About TIDAK menampilkan TopBar/BottomBar dari Scaffold Admin ini
+    // Karena mereka sudah punya CommonTopBar sendiri
     val showBars = adminMainScreens.any { currentRoute.startsWith(it) } &&
             !currentRoute.startsWith("add_category") &&
-            !currentRoute.startsWith("edit_article") // 🟢 Sembunyikan di halaman edit article
+            !currentRoute.startsWith("edit_article")
 
     val topBarTitle = when (currentRoute) {
         "Dashboard" -> "Admin Dashboard"
@@ -68,9 +66,7 @@ fun AdminNavGraph(
                     currentRoute = currentRoute,
                     onItemClick = { route ->
                         adminNavController.navigate(route) {
-                            popUpTo(adminNavController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
+                            popUpTo(adminNavController.graph.findStartDestination().id) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -85,66 +81,36 @@ fun AdminNavGraph(
             startDestination = "Dashboard",
             modifier = Modifier.padding(innerPadding)
         ) {
-            // 1. DASHBOARD
-            composable("Dashboard") {
-                AdminDashboardScreen(currentUser = currentUser)
-            }
+            composable("Dashboard") { AdminDashboardScreen(currentUser = currentUser) }
 
-            // 2. MANAGE NEWS
             composable("News") {
                 ManageNewsScreen(
-                    // 🟢 3. Callback Navigasi ke Edit Article
-                    onEditArticleClick = { articleId ->
-                        adminNavController.navigate("edit_article/$articleId")
-                    }
+                    onEditArticleClick = { articleId -> adminNavController.navigate("edit_article/$articleId") }
                 )
             }
 
-            // 🟢 4. ROUTE ADMIN EDIT ARTICLE
-            composable(
-                route = "edit_article/{articleId}",
-                arguments = listOf(
-                    navArgument("articleId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                // Ambil ID dari Argument Navigasi
+            composable("edit_article/{articleId}", arguments = listOf(navArgument("articleId") { type = NavType.IntType })) { backStackEntry ->
                 val articleId = backStackEntry.arguments?.getInt("articleId") ?: -1
-
-                // Tampilkan Screen
                 AdminEditArticleScreen(
                     articleId = articleId,
                     onBackClick = { adminNavController.popBackStack() },
                     onSaveClick = {
-                        // Logic Simpan (Simulasi)
                         Toast.makeText(context, "Article Updated Successfully!", Toast.LENGTH_SHORT).show()
                         adminNavController.popBackStack()
                     }
                 )
             }
 
-            // 3. MANAGE CATEGORIES
             composable("Categories") {
                 ManageCategoriesScreen(
                     onAddCategoryClick = { adminNavController.navigate("add_category") },
-                    onEditCategoryClick = { categoryId ->
-                        adminNavController.navigate("add_category?categoryId=$categoryId")
-                    }
+                    onEditCategoryClick = { categoryId -> adminNavController.navigate("add_category?categoryId=$categoryId") }
                 )
             }
 
-            // ADD/EDIT CATEGORY ROUTE
-            composable(
-                route = "add_category?categoryId={categoryId}",
-                arguments = listOf(
-                    navArgument("categoryId") {
-                        type = NavType.IntType
-                        defaultValue = -1
-                    }
-                )
-            ) { backStackEntry ->
+            composable("add_category?categoryId={categoryId}", arguments = listOf(navArgument("categoryId") { type = NavType.IntType; defaultValue = -1 })) { backStackEntry ->
                 val argId = backStackEntry.arguments?.getInt("categoryId") ?: -1
                 val finalId = if (argId == -1) null else argId
-
                 AddANewCategoryScreen(
                     categoryId = finalId,
                     onBackClick = { adminNavController.popBackStack() },
@@ -156,16 +122,29 @@ fun AdminNavGraph(
                 )
             }
 
-            // 4. MANAGE USERS
-            composable("Users") {
-                ManageUsersScreen()
-            }
+            composable("Users") { ManageUsersScreen() }
 
-            // 5. SETTINGS
+            // 🟢 UPDATE SETTINGS
             composable("Settings") {
                 AdminSettingsScreen(
-                    currentUser = currentUser,
-                    onLogout = onLogout
+                    // currentUser dihapus
+                    onLogout = onLogout,
+                    onPrivacyClick = { adminNavController.navigate("PrivacyPolicy") }, // Navigasi
+                    onAboutClick = { adminNavController.navigate("About") }          // Navigasi
+                )
+            }
+
+            // 🟢 ROUTE BARU: PRIVACY POLICY
+            composable("PrivacyPolicy") {
+                PrivacyPolicyScreen(
+                    onNavigateBack = { adminNavController.popBackStack() }
+                )
+            }
+
+            // 🟢 ROUTE BARU: ABOUT
+            composable("About") {
+                AboutScreen(
+                    onNavigateBack = { adminNavController.popBackStack() }
                 )
             }
         }

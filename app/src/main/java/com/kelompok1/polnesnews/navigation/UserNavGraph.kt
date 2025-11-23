@@ -21,7 +21,11 @@ import com.kelompok1.polnesnews.components.PolnesTopAppBar
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.components.UserBottomNav
 import com.kelompok1.polnesnews.ui.user.*
+// 🟢 Pastikan baris ini tidak merah lagi setelah membuat file SessionManager
 import com.kelompok1.polnesnews.utils.SessionManager
+// 🟢 Import screen Privacy & About
+import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
+import com.kelompok1.polnesnews.ui.common.AboutScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,7 +93,6 @@ fun UserNavGraph(
                 )
             }
 
-            // 🟢 BAGIAN PENTING: Menghubungkan klik Notifikasi ke Detail Berita
             composable("Notifications") {
                 NotificationsScreen(
                     onNewsClick = { newsId ->
@@ -98,6 +101,7 @@ fun UserNavGraph(
                 )
             }
 
+            // 🟢 REVISI SETTINGS: Tambahkan navigasi Privacy & About
             composable("Settings") {
                 SettingsScreen(
                     onLogout = {
@@ -105,7 +109,23 @@ fun UserNavGraph(
                         rootNavController.navigate("auth_graph") {
                             popUpTo("user_root") { inclusive = true }
                         }
-                    }
+                    },
+                    onPrivacyClick = { userNavController.navigate("PrivacyPolicy") },
+                    onAboutClick = { userNavController.navigate("About") }
+                )
+            }
+
+            // 🟢 ROUTE BARU: PRIVACY POLICY
+            composable("PrivacyPolicy") {
+                PrivacyPolicyScreen(
+                    onNavigateBack = { userNavController.popBackStack() }
+                )
+            }
+
+            // 🟢 ROUTE BARU: ABOUT
+            composable("About") {
+                AboutScreen(
+                    onNavigateBack = { userNavController.popBackStack() }
                 )
             }
 
@@ -135,7 +155,6 @@ fun UserNavGraph(
                 )
             }
 
-            // Halaman Detail Berita (Tujuan Akhir)
             composable(
                 route = "NewsDetail/{newsId}",
                 arguments = listOf(navArgument("newsId") { type = NavType.IntType })

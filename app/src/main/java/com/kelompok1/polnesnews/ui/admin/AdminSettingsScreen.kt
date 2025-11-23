@@ -13,20 +13,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kelompok1.polnesnews.components.AccountInfoCard
-import com.kelompok1.polnesnews.components.AdminBottomNav // Import BottomNav Admin
+import com.kelompok1.polnesnews.components.AdminBottomNav
 import com.kelompok1.polnesnews.components.SettingsButton
-import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar // Import TopBar
-import com.kelompok1.polnesnews.model.DummyData
-import com.kelompok1.polnesnews.model.User
-import com.kelompok1.polnesnews.model.UserRole
+import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
+import com.kelompok1.polnesnews.utils.SessionManager // 🟢 Import SessionManager
 
 @Composable
 fun AdminSettingsScreen(
-    currentUser: User?,
-    onLogout: () -> Unit
+    // currentUser: User?, // 🔴 Hapus parameter ini
+    onLogout: () -> Unit,
+    onPrivacyClick: () -> Unit, // 🟢 Parameter Navigasi Baru
+    onAboutClick: () -> Unit    // 🟢 Parameter Navigasi Baru
 ) {
-    // Halaman ini CONTENT ONLY (Tanpa Scaffold), karena Scaffold ada di NavGraph
+    // 🟢 Ambil user dari SessionManager
+    val currentUser = SessionManager.currentUser
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -61,12 +63,12 @@ fun AdminSettingsScreen(
         SettingsButton(
             text = "Privacy and Policy",
             icon = Icons.Outlined.PrivacyTip,
-            onClick = { /* TODO */ }
+            onClick = onPrivacyClick // 🟢 Panggil navigasi
         )
         SettingsButton(
             text = "About",
             icon = Icons.Outlined.Info,
-            onClick = { /* TODO */ }
+            onClick = onAboutClick // 🟢 Panggil navigasi
         )
 
         // Tombol Logout
@@ -80,32 +82,21 @@ fun AdminSettingsScreen(
     }
 }
 
-// --- PREVIEW LENGKAP (DENGAN TOP & BOTTOM BAR) ---
+// --- PREVIEW ---
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true, name = "Full Screen Preview")
+@Preview(showBackground = true)
 @Composable
 private fun AdminSettingsFullPreview() {
     PolnesNewsTheme {
-        val mockAdmin = DummyData.userList.find { it.role == UserRole.ADMIN }
-
-        // Kita buat Scaffold BOHONGAN hanya untuk Preview
-        // Agar kita bisa lihat posisi TopBar dan BottomBar-nya
         Scaffold(
-            topBar = {
-                TitleOnlyTopAppBar(title = "Settings")
-            },
-            bottomBar = {
-                AdminBottomNav(
-                    currentRoute = "Settings", // Ceritanya kita sedang di tab Settings
-                    onItemClick = {}
-                )
-            }
+            topBar = { TitleOnlyTopAppBar(title = "Settings") },
+            bottomBar = { AdminBottomNav(currentRoute = "Settings", onItemClick = {}) }
         ) { innerPadding ->
-            // Masukkan konten screen kita ke dalam padding Scaffold preview
             Box(modifier = Modifier.padding(innerPadding)) {
                 AdminSettingsScreen(
-                    currentUser = mockAdmin,
-                    onLogout = {}
+                    onLogout = {},
+                    onPrivacyClick = {},
+                    onAboutClick = {}
                 )
             }
         }

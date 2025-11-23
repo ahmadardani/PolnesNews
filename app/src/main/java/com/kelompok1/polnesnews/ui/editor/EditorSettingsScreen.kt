@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Help
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.outlined.PrivacyTip
@@ -21,24 +20,25 @@ import com.kelompok1.polnesnews.components.AccountInfoCard
 import com.kelompok1.polnesnews.components.EditorBottomNav
 import com.kelompok1.polnesnews.components.SettingsButton
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
-import com.kelompok1.polnesnews.model.DummyData
-import com.kelompok1.polnesnews.model.User
-import com.kelompok1.polnesnews.model.UserRole
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
+import com.kelompok1.polnesnews.utils.SessionManager // 🟢 Import SessionManager
 
 @Composable
 fun EditorSettingsScreen(
     navController: NavHostController,
-    currentUser: User?,
-    onLogout: () -> Unit
+    // currentUser: User?, // 🔴 Hapus parameter ini
+    onLogout: () -> Unit,
+    onPrivacyClick: () -> Unit, // 🟢 Parameter Navigasi Baru
+    onAboutClick: () -> Unit    // 🟢 Parameter Navigasi Baru
 ) {
-    // 🟢 PERBAIKAN: Hapus Scaffold, langsung Column (Content Only)
-    // Padding sistem (TopBar/BottomBar) sudah diurus oleh EditorNavGraph
+    // 🟢 Ambil user dari SessionManager
+    val currentUser = SessionManager.currentUser
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(vertical = 16.dp) // Padding vertikal agar tidak terlalu mepet atas/bawah konten
+            .padding(vertical = 16.dp)
     ) {
         // --- Bagian Info Akun ---
         Text(
@@ -56,7 +56,7 @@ fun EditorSettingsScreen(
             } ?: "Guest"
         )
 
-        Spacer(modifier = Modifier.height(24.dp)) // Jarak antar seksi
+        Spacer(modifier = Modifier.height(24.dp))
 
         // --- Bagian Tombol-Tombol Pengaturan ---
         Text(
@@ -68,19 +68,14 @@ fun EditorSettingsScreen(
         )
 
         SettingsButton(
-            text = "Help and Feedback",
-            icon = Icons.Outlined.Help,
-            onClick = { /* TODO */ }
-        )
-        SettingsButton(
             text = "Privacy and Policy",
             icon = Icons.Outlined.PrivacyTip,
-            onClick = { /* TODO */ }
+            onClick = onPrivacyClick // 🟢 Panggil navigasi
         )
         SettingsButton(
             text = "About",
             icon = Icons.Outlined.Info,
-            onClick = { /* TODO */ }
+            onClick = onAboutClick // 🟢 Panggil navigasi
         )
 
         // Tombol Logout
@@ -90,7 +85,6 @@ fun EditorSettingsScreen(
             onClick = onLogout
         )
 
-        // Spacer bawah agar scroll mentok tidak kepotong
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
@@ -101,23 +95,16 @@ fun EditorSettingsScreen(
 @Composable
 private fun EditorSettingsScreenPreview() {
     PolnesNewsTheme {
-        val mockUser = DummyData.userList.find { it.role == UserRole.EDITOR }
-
-        // Simulasi Scaffold Induk agar Preview terlihat nyata
         Scaffold(
             topBar = { TitleOnlyTopAppBar(title = "Settings") },
-            bottomBar = {
-                EditorBottomNav(
-                    currentRoute = "editor_settings",
-                    onNavigate = {}
-                )
-            }
+            bottomBar = { EditorBottomNav(currentRoute = "editor_settings", onNavigate = {}) }
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
                 EditorSettingsScreen(
                     navController = rememberNavController(),
-                    currentUser = mockUser,
-                    onLogout = {}
+                    onLogout = {},
+                    onPrivacyClick = {},
+                    onAboutClick = {}
                 )
             }
         }

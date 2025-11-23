@@ -16,12 +16,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.kelompok1.polnesnews.components.EditorBottomNav
-import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar // Asumsi ini komponenmu
+import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.model.User
 import com.kelompok1.polnesnews.ui.editor.EditorDashboardScreen
 import com.kelompok1.polnesnews.ui.editor.EditorSettingsScreen
 import com.kelompok1.polnesnews.ui.editor.YourArticleScreen
 import com.kelompok1.polnesnews.ui.editor.AddANewArticleScreen
+// 🟢 Import Layar Umum
+import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
+import com.kelompok1.polnesnews.ui.common.AboutScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,37 +36,29 @@ fun EditorNavGraph(
     val editorNavController = rememberNavController()
     val context = LocalContext.current
 
-    // 1. Mendapatkan route aktif secara real-time
     val navBackStackEntry by editorNavController.currentBackStackEntryAsState()
     val fullRoute = navBackStackEntry?.destination?.route
     val currentRoute = fullRoute?.substringBefore("?") ?: "editor_dashboard"
 
-    // Tentukan menu yang menggunakan Bottom Bar & Top Bar sederhana
     val mainRoutes = listOf("editor_dashboard", "editor_articles", "editor_settings")
+    // Privacy & About TIDAK dimasukkan sini, biar mereka punya TopBar sendiri (CommonTopBar)
     val showMainBars = currentRoute in mainRoutes
 
-    // Dapatkan judul halaman
     val title = getScreenTitle(currentRoute)
 
     Scaffold(
-        // 🟢 PERBAIKAN TOP BAR: Dynamic TopBar di Induk Scaffold
         topBar = {
             if (showMainBars) {
-                // Top Bar akan tampil jika bukan halaman Form (Add/Edit)
                 TitleOnlyTopAppBar(title = title)
             }
         },
-
-        // ✅ BottomBar (Sudah dinamis)
         bottomBar = {
             if (showMainBars) {
                 EditorBottomNav(
                     currentRoute = currentRoute,
                     onNavigate = { route ->
                         editorNavController.navigate(route) {
-                            popUpTo(editorNavController.graph.startDestinationId) {
-                                saveState = true
-                            }
+                            popUpTo(editorNavController.graph.startDestinationId) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -76,12 +71,9 @@ fun EditorNavGraph(
         NavHost(
             navController = editorNavController,
             startDestination = "editor_dashboard",
-            // 💡 PENTING: Padding dari Scaffold Induk diterapkan di sini
             modifier = Modifier.padding(innerPadding)
         ) {
-            // 1. DASHBOARD (CONTENT-ONLY)
             composable("editor_dashboard") {
-                // Panggil composable tanpa Scaffold/TopBar
                 EditorDashboardScreen(
                     editorId = currentUser?.id ?: -1,
                     currentRoute = "editor_dashboard",
@@ -89,21 +81,35 @@ fun EditorNavGraph(
                 )
             }
 
-            // 2. YOUR ARTICLES (CONTENT-ONLY)
             composable("editor_articles") {
                 YourArticleScreen(navController = editorNavController)
             }
 
-            // 3. SETTINGS (CONTENT-ONLY)
+            // 🟢 UPDATE SETTINGS
             composable("editor_settings") {
                 EditorSettingsScreen(
                     navController = editorNavController,
-                    currentUser = currentUser,
-                    onLogout = onLogout
+                    // currentUser dihapus, pakai SessionManager di dalam screen
+                    onLogout = onLogout,
+                    onPrivacyClick = { editorNavController.navigate("PrivacyPolicy") }, // Navigasi
+                    onAboutClick = { editorNavController.navigate("About") }          // Navigasi
                 )
             }
 
-            // 4. ADD/EDIT FORM (HARUS PUNYA SCAFFOLD SENDIRI UNTUK TOMBOL BACK/SAVE)
+            // 🟢 ROUTE BARU: PRIVACY POLICY
+            composable("PrivacyPolicy") {
+                PrivacyPolicyScreen(
+                    onNavigateBack = { editorNavController.popBackStack() }
+                )
+            }
+
+            // 🟢 ROUTE BARU: ABOUT
+            composable("About") {
+                AboutScreen(
+                    onNavigateBack = { editorNavController.popBackStack() }
+                )
+            }
+
             composable(
                 route = "article_form?articleId={articleId}",
                 arguments = listOf(navArgument("articleId") { type = NavType.IntType; defaultValue = -1 })
@@ -128,7 +134,6 @@ fun EditorNavGraph(
     }
 }
 
-// Helper function untuk judul Top Bar
 private fun getScreenTitle(route: String): String {
     return when (route) {
         "editor_dashboard" -> "Dashboard"
