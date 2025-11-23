@@ -1,5 +1,9 @@
 package com.kelompok1.polnesnews.navigation
 
+// 🟢 Tambahkan Import Animasi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -20,7 +24,6 @@ import com.kelompok1.polnesnews.components.AdminBottomNav
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.model.User
 import com.kelompok1.polnesnews.ui.admin.*
-// 🟢 Import Layar Umum
 import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
 import com.kelompok1.polnesnews.ui.common.AboutScreen
 
@@ -39,8 +42,6 @@ fun AdminNavGraph(
 
     val adminMainScreens = listOf("Dashboard", "News", "Categories", "Users", "Settings")
 
-    // Pastikan Privacy & About TIDAK menampilkan TopBar/BottomBar dari Scaffold Admin ini
-    // Karena mereka sudah punya CommonTopBar sendiri
     val showBars = adminMainScreens.any { currentRoute.startsWith(it) } &&
             !currentRoute.startsWith("add_category") &&
             !currentRoute.startsWith("edit_article")
@@ -79,10 +80,14 @@ fun AdminNavGraph(
         NavHost(
             navController = adminNavController,
             startDestination = "Dashboard",
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            // 🟢 ANIMASI TRANSISI (Sama dengan UserNavGraph)
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(300)) }
         ) {
             composable("Dashboard") {
-                // 🔴 HAPUS parameter currentUser
                 AdminDashboardScreen()
             }
 
@@ -127,24 +132,20 @@ fun AdminNavGraph(
 
             composable("Users") { ManageUsersScreen() }
 
-            // 🟢 UPDATE SETTINGS
             composable("Settings") {
                 AdminSettingsScreen(
-                    // currentUser dihapus
                     onLogout = onLogout,
-                    onPrivacyClick = { adminNavController.navigate("PrivacyPolicy") }, // Navigasi
-                    onAboutClick = { adminNavController.navigate("About") }          // Navigasi
+                    onPrivacyClick = { adminNavController.navigate("PrivacyPolicy") },
+                    onAboutClick = { adminNavController.navigate("About") }
                 )
             }
 
-            // 🟢 ROUTE BARU: PRIVACY POLICY
             composable("PrivacyPolicy") {
                 PrivacyPolicyScreen(
                     onNavigateBack = { adminNavController.popBackStack() }
                 )
             }
 
-            // 🟢 ROUTE BARU: ABOUT
             composable("About") {
                 AboutScreen(
                     onNavigateBack = { adminNavController.popBackStack() }

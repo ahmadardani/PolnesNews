@@ -1,6 +1,10 @@
 package com.kelompok1.polnesnews.navigation
 
 import android.widget.Toast
+// 🟢 Tambahkan Import Animasi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -22,7 +26,6 @@ import com.kelompok1.polnesnews.ui.editor.EditorDashboardScreen
 import com.kelompok1.polnesnews.ui.editor.EditorSettingsScreen
 import com.kelompok1.polnesnews.ui.editor.YourArticleScreen
 import com.kelompok1.polnesnews.ui.editor.AddANewArticleScreen
-// 🟢 Import Halaman Umum
 import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
 import com.kelompok1.polnesnews.ui.common.AboutScreen
 
@@ -41,7 +44,6 @@ fun EditorNavGraph(
     val currentRoute = fullRoute?.substringBefore("?") ?: "editor_dashboard"
 
     val mainRoutes = listOf("editor_dashboard", "editor_articles", "editor_settings")
-    // Privacy & About tidak punya BottomBar editor
     val showMainBars = currentRoute in mainRoutes
 
     val title = getScreenTitle(currentRoute)
@@ -71,12 +73,16 @@ fun EditorNavGraph(
         NavHost(
             navController = editorNavController,
             startDestination = "editor_dashboard",
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            // 🟢 ANIMASI TRANSISI (Sama dengan UserNavGraph)
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(300)) }
         ) {
             // 1. DASHBOARD
             composable("editor_dashboard") {
                 EditorDashboardScreen(
-                    // 🟢 HAPUS parameter editorId
                     currentRoute = "editor_dashboard",
                     onNavigate = { /* ... */ }
                 )
@@ -91,22 +97,20 @@ fun EditorNavGraph(
             composable("editor_settings") {
                 EditorSettingsScreen(
                     navController = editorNavController,
-                    // currentUser dihapus (sudah pakai SessionManager di dalam)
                     onLogout = onLogout,
-                    // 🟢 Hubungkan navigasi ke halaman baru
                     onPrivacyClick = { editorNavController.navigate("PrivacyPolicy") },
                     onAboutClick = { editorNavController.navigate("About") }
                 )
             }
 
-            // 🟢 4. PRIVACY POLICY
+            // 4. PRIVACY POLICY
             composable("PrivacyPolicy") {
                 PrivacyPolicyScreen(
                     onNavigateBack = { editorNavController.popBackStack() }
                 )
             }
 
-            // 🟢 5. ABOUT
+            // 5. ABOUT
             composable("About") {
                 AboutScreen(
                     onNavigateBack = { editorNavController.popBackStack() }
