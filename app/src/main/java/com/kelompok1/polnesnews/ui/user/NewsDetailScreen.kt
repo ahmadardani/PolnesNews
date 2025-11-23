@@ -24,6 +24,7 @@ fun NewsDetailScreen(
     onNavigateBack: () -> Unit,
     newsId: Int
 ) {
+    // Mengambil data berita berdasarkan ID yang dikirim
     val news = remember(newsId) { DummyData.newsList.find { it.id == newsId } }
     val author = remember(news?.authorId) { DummyData.userList.find { it.id == news?.authorId } }
     val comments = remember(newsId) { DummyData.commentList.filter { it.newsId == newsId } }
@@ -122,13 +123,13 @@ fun NewsDetailScreen(
                 }
             }
 
-            // Input Rating Bintang
+            // Input Rating
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 ArticleRatingInput()
             }
 
-            // Judul "User Ratings"
+            // Judul Ratings
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
@@ -139,7 +140,7 @@ fun NewsDetailScreen(
                 )
             }
 
-            // Ringkasan rata-rata rating
+            // Ringkasan Rating
             item {
                 RatingSummary(comments = comments)
             }

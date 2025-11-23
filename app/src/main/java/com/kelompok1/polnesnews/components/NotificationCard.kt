@@ -2,6 +2,7 @@ package com.kelompok1.polnesnews.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,28 +19,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kelompok1.polnesnews.model.Notification
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.kelompok1.polnesnews.model.Notification
 import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
-import androidx.compose.foundation.isSystemInDarkTheme
 import com.kelompok1.polnesnews.ui.theme.NotifBackgroundDark
 import com.kelompok1.polnesnews.ui.theme.NotifBackgroundLight
 import com.kelompok1.polnesnews.ui.theme.NotifIconTintDark
 import com.kelompok1.polnesnews.ui.theme.NotifIconTintLight
 
 @Composable
-fun NotificationCard(notification: Notification) {
+fun NotificationCard(
+    notification: Notification,
+    onClick: () -> Unit // 🟢 Callback untuk klik
+) {
     val isDark = isSystemInDarkTheme()
-    // Tentukan warna ikon berdasarkan tema
     val iconBackground = if (isDark) NotifBackgroundDark else NotifBackgroundLight
     val iconTint = if (isDark) NotifIconTintDark else NotifIconTintLight
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp)
     ) {
-        // 🔹 Tanggal di atas card
+        // Tanggal
         Text(
             text = notification.date,
             style = MaterialTheme.typography.bodySmall.copy(
@@ -47,24 +51,24 @@ fun NotificationCard(notification: Notification) {
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold
             ),
-            modifier = Modifier
-                .padding(start = 8.dp, bottom = 4.dp)
+            modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
         )
 
-        // 🔹 Isi card
+        // Card Konten
         Card(
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             ),
             elevation = CardDefaults.cardElevation(3.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() } // 🟢 Memicu aksi klik
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(12.dp)
             ) {
-                // ... (Isi Card tetap sama) ...
                 Box(
                     modifier = Modifier
                         .size(36.dp)
@@ -107,9 +111,12 @@ fun NotificationCard(notification: Notification) {
 
 @Preview(showBackground = true)
 @Composable
-fun NotificationCardPreview() { // <-- NAMA PREVIEW DIUBAH
+fun NotificationCardPreview() {
     val sampleNotification = DummyData.notifications[0]
     PolnesNewsTheme {
-        NotificationCard(notification = sampleNotification) // <-- PANGGILAN DIUBAH
+        NotificationCard(
+            notification = sampleNotification,
+            onClick = {}
+        )
     }
 }

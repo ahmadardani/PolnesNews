@@ -1,5 +1,8 @@
 package com.kelompok1.polnesnews.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -18,12 +21,7 @@ import com.kelompok1.polnesnews.components.PolnesTopAppBar
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.components.UserBottomNav
 import com.kelompok1.polnesnews.ui.user.*
-import com.kelompok1.polnesnews.utils.SessionManager // Jangan lupa import SessionManager
-
-// Impor untuk Animasi
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import com.kelompok1.polnesnews.utils.SessionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +33,7 @@ fun UserNavGraph(
     val currentRoute = navBackStackEntry?.destination?.route ?: "Home"
 
     val userScreens = listOf("Home", "Categories", "Notifications", "Settings")
-    val showBars = currentRoute in userScreens
+    val showBars = userScreens.any { currentRoute.startsWith(it) }
 
     Scaffold(
         topBar = {
@@ -70,20 +68,10 @@ fun UserNavGraph(
             navController = userNavController,
             startDestination = "Home",
             modifier = if (showBars) Modifier.padding(innerPadding) else Modifier,
-
-            // --- Animasi ---
-            enterTransition = {
-                slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300))
-            },
-            exitTransition = {
-                slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300))
-            },
-            popEnterTransition = {
-                slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300))
-            },
-            popExitTransition = {
-                slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(300))
-            }
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(300)) }
         ) {
             composable("Home") {
                 HomeScreen(
@@ -92,6 +80,7 @@ fun UserNavGraph(
                     onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
+
             composable("Categories") {
                 CategoriesScreen(
                     onCategoryClick = { categoryName ->
@@ -99,18 +88,21 @@ fun UserNavGraph(
                     }
                 )
             }
-            composable("Notifications") { NotificationsScreen() }
 
-            // 🟢 PERBAIKAN LOGOUT DI SINI
+            // 🟢 BAGIAN PENTING: Menghubungkan klik Notifikasi ke Detail Berita
+            composable("Notifications") {
+                NotificationsScreen(
+                    onNewsClick = { newsId ->
+                        userNavController.navigate("NewsDetail/$newsId")
+                    }
+                )
+            }
+
             composable("Settings") {
                 SettingsScreen(
                     onLogout = {
-                        // 1. Hapus data login
                         SessionManager.currentUser = null
-
-                        // 2. Navigasi ke Login (Pastikan nama routenya 'auth_graph')
                         rootNavController.navigate("auth_graph") {
-                            // Hapus history 'user_root'
                             popUpTo("user_root") { inclusive = true }
                         }
                     }
@@ -128,18 +120,22 @@ fun UserNavGraph(
                     onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
+
             composable("RecentNews") {
                 RecentNewsScreen(
                     onNavigateBack = { userNavController.popBackStack() },
                     onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
+
             composable("MostViewedNews") {
                 MostViewedNewsScreen(
                     onNavigateBack = { userNavController.popBackStack() },
                     onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
+
+            // Halaman Detail Berita (Tujuan Akhir)
             composable(
                 route = "NewsDetail/{newsId}",
                 arguments = listOf(navArgument("newsId") { type = NavType.IntType })

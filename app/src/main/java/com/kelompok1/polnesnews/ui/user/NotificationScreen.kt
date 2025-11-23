@@ -17,62 +17,38 @@ import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.components.UserBottomNav
 import com.kelompok1.polnesnews.model.DummyData
 
-/**
- * Layar yang menampilkan daftar semua notifikasi.
- */
 @Composable
-fun NotificationsScreen() {
-    // Ambil data notifikasi (dummy)
+fun NotificationsScreen(
+    onNewsClick: (Int) -> Unit // 🟢 Menerima fungsi navigasi dari NavGraph
+) {
     val notifications = DummyData.notifications
 
-    // Gunakan LazyColumn untuk menampilkan daftar notifikasi
-    // agar efisien (hanya merender yang tampil di layar) dan bisa di-scroll.
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        // Loop untuk setiap item di 'notifications'
         items(notifications) { notification ->
-            // Panggil Composable 'NotificationCard' yang sudah reusable
-            NotificationCard(notification = notification)
+            NotificationCard(
+                notification = notification,
+                onClick = {
+                    // 🟢 Mengirim ID notifikasi (berita) ke NavGraph
+                    onNewsClick(notification.id)
+                }
+            )
         }
     }
 }
 
-// --- PREVIEW 1: HANYA KONTEN ---
-@Preview(showBackground = true, name = "Hanya Konten (Default)")
-@Composable
-private fun NotificationsScreenPreview() {
-    // PolnesNewsTheme {
-    // Preview ini hanya merender konten layarnya saja,
-    // berguna untuk mengecek UI komponennya.
-    NotificationsScreen()
-    // }
-}
-
-// --- PREVIEW 2: TAMPILAN PENUH ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "Tampilan Penuh (Full App)")
 @Composable
 private fun FullNotificationsScreenPreview() {
-    // PolnesNewsTheme {
-    // Preview ini mensimulasikan bagaimana layar ini akan terlihat
-    // di dalam aplikasi lengkap dengan TopBar dan BottomNav.
     Scaffold(
-        topBar = {
-            TitleOnlyTopAppBar(title = "Notifications")
-        },
-        bottomBar = {
-            UserBottomNav(
-                currentRoute = "Notifications", // Tandai "Notifications" sebagai aktif
-                onItemClick = {} // Tidak perlu aksi di preview
-            )
-        }
+        topBar = { TitleOnlyTopAppBar(title = "Notifications") },
+        bottomBar = { UserBottomNav(currentRoute = "Notifications", onItemClick = {}) }
     ) { innerPadding ->
-        // Terapkan padding dari Scaffold ke konten
         Box(modifier = Modifier.padding(innerPadding)) {
-            NotificationsScreen()
+            NotificationsScreen(onNewsClick = {})
         }
     }
-    // }
 }
