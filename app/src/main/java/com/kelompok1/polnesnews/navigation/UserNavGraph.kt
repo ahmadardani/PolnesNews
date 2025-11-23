@@ -21,11 +21,9 @@ import com.kelompok1.polnesnews.components.PolnesTopAppBar
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.components.UserBottomNav
 import com.kelompok1.polnesnews.ui.user.*
-// 🟢 Pastikan baris ini tidak merah lagi setelah membuat file SessionManager
-import com.kelompok1.polnesnews.utils.SessionManager
-// 🟢 Import screen Privacy & About
 import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
 import com.kelompok1.polnesnews.ui.common.AboutScreen
+import com.kelompok1.polnesnews.utils.SessionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,19 +70,23 @@ fun UserNavGraph(
             navController = userNavController,
             startDestination = "Home",
             modifier = if (showBars) Modifier.padding(innerPadding) else Modifier,
+            // Animasi Transisi Halaman
             enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300)) },
             exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300)) },
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300)) },
             popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(300)) }
         ) {
+            // 1. HOME
             composable("Home") {
                 HomeScreen(
                     onViewAllRecent = { userNavController.navigate("RecentNews") },
                     onViewAllMostViewed = { userNavController.navigate("MostViewedNews") },
+                    onViewAllMostRated = { userNavController.navigate("MostRatedNews") }, // 🟢 Navigasi Baru
                     onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
 
+            // 2. CATEGORIES
             composable("Categories") {
                 CategoriesScreen(
                     onCategoryClick = { categoryName ->
@@ -93,6 +95,7 @@ fun UserNavGraph(
                 )
             }
 
+            // 3. NOTIFICATIONS
             composable("Notifications") {
                 NotificationsScreen(
                     onNewsClick = { newsId ->
@@ -101,7 +104,7 @@ fun UserNavGraph(
                 )
             }
 
-            // 🟢 REVISI SETTINGS: Tambahkan navigasi Privacy & About
+            // 4. SETTINGS
             composable("Settings") {
                 SettingsScreen(
                     onLogout = {
@@ -115,20 +118,9 @@ fun UserNavGraph(
                 )
             }
 
-            // 🟢 ROUTE BARU: PRIVACY POLICY
-            composable("PrivacyPolicy") {
-                PrivacyPolicyScreen(
-                    onNavigateBack = { userNavController.popBackStack() }
-                )
-            }
+            // --- Sub-Screens ---
 
-            // 🟢 ROUTE BARU: ABOUT
-            composable("About") {
-                AboutScreen(
-                    onNavigateBack = { userNavController.popBackStack() }
-                )
-            }
-
+            // Detail Kategori
             composable(
                 route = "CategorySelected/{categoryName}",
                 arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
@@ -141,6 +133,7 @@ fun UserNavGraph(
                 )
             }
 
+            // List Berita: Recent
             composable("RecentNews") {
                 RecentNewsScreen(
                     onNavigateBack = { userNavController.popBackStack() },
@@ -148,6 +141,7 @@ fun UserNavGraph(
                 )
             }
 
+            // List Berita: Most Viewed
             composable("MostViewedNews") {
                 MostViewedNewsScreen(
                     onNavigateBack = { userNavController.popBackStack() },
@@ -155,6 +149,28 @@ fun UserNavGraph(
                 )
             }
 
+            // 🟢 List Berita: Most Rated (BARU)
+            composable("MostRatedNews") {
+                MostRatedNewsScreen(
+                    onNavigateBack = { userNavController.popBackStack() },
+                    onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
+                )
+            }
+
+            // Halaman Umum: Privacy & About
+            composable("PrivacyPolicy") {
+                PrivacyPolicyScreen(
+                    onNavigateBack = { userNavController.popBackStack() }
+                )
+            }
+
+            composable("About") {
+                AboutScreen(
+                    onNavigateBack = { userNavController.popBackStack() }
+                )
+            }
+
+            // Halaman Detail Berita (Tujuan Akhir)
             composable(
                 route = "NewsDetail/{newsId}",
                 arguments = listOf(navArgument("newsId") { type = NavType.IntType })

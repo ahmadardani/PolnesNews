@@ -22,7 +22,7 @@ import com.kelompok1.polnesnews.ui.editor.EditorDashboardScreen
 import com.kelompok1.polnesnews.ui.editor.EditorSettingsScreen
 import com.kelompok1.polnesnews.ui.editor.YourArticleScreen
 import com.kelompok1.polnesnews.ui.editor.AddANewArticleScreen
-// 🟢 Import Layar Umum
+// 🟢 Import Halaman Umum
 import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
 import com.kelompok1.polnesnews.ui.common.AboutScreen
 
@@ -41,7 +41,7 @@ fun EditorNavGraph(
     val currentRoute = fullRoute?.substringBefore("?") ?: "editor_dashboard"
 
     val mainRoutes = listOf("editor_dashboard", "editor_articles", "editor_settings")
-    // Privacy & About TIDAK dimasukkan sini, biar mereka punya TopBar sendiri (CommonTopBar)
+    // Privacy & About tidak punya BottomBar editor
     val showMainBars = currentRoute in mainRoutes
 
     val title = getScreenTitle(currentRoute)
@@ -73,43 +73,47 @@ fun EditorNavGraph(
             startDestination = "editor_dashboard",
             modifier = Modifier.padding(innerPadding)
         ) {
+            // 1. DASHBOARD
             composable("editor_dashboard") {
                 EditorDashboardScreen(
-                    editorId = currentUser?.id ?: -1,
+                    // 🟢 HAPUS parameter editorId
                     currentRoute = "editor_dashboard",
                     onNavigate = { /* ... */ }
                 )
             }
 
+            // 2. YOUR ARTICLES
             composable("editor_articles") {
                 YourArticleScreen(navController = editorNavController)
             }
 
-            // 🟢 UPDATE SETTINGS
+            // 3. SETTINGS
             composable("editor_settings") {
                 EditorSettingsScreen(
                     navController = editorNavController,
-                    // currentUser dihapus, pakai SessionManager di dalam screen
+                    // currentUser dihapus (sudah pakai SessionManager di dalam)
                     onLogout = onLogout,
-                    onPrivacyClick = { editorNavController.navigate("PrivacyPolicy") }, // Navigasi
-                    onAboutClick = { editorNavController.navigate("About") }          // Navigasi
+                    // 🟢 Hubungkan navigasi ke halaman baru
+                    onPrivacyClick = { editorNavController.navigate("PrivacyPolicy") },
+                    onAboutClick = { editorNavController.navigate("About") }
                 )
             }
 
-            // 🟢 ROUTE BARU: PRIVACY POLICY
+            // 🟢 4. PRIVACY POLICY
             composable("PrivacyPolicy") {
                 PrivacyPolicyScreen(
                     onNavigateBack = { editorNavController.popBackStack() }
                 )
             }
 
-            // 🟢 ROUTE BARU: ABOUT
+            // 🟢 5. ABOUT
             composable("About") {
                 AboutScreen(
                     onNavigateBack = { editorNavController.popBackStack() }
                 )
             }
 
+            // 6. ADD/EDIT ARTICLE
             composable(
                 route = "article_form?articleId={articleId}",
                 arguments = listOf(navArgument("articleId") { type = NavType.IntType; defaultValue = -1 })
@@ -122,10 +126,6 @@ fun EditorNavGraph(
                     onBackClick = { editorNavController.popBackStack() },
                     onSubmitClick = {
                         Toast.makeText(context, "Article Submitted!", Toast.LENGTH_SHORT).show()
-                        editorNavController.popBackStack()
-                    },
-                    onDeleteClick = {
-                        Toast.makeText(context, "Article Deleted!", Toast.LENGTH_SHORT).show()
                         editorNavController.popBackStack()
                     }
                 )

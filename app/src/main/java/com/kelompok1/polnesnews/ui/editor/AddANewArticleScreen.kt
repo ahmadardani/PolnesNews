@@ -25,12 +25,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
-import com.kelompok1.polnesnews.components.CommonTopBar // 🟢 Import CommonTopBar
+import com.kelompok1.polnesnews.components.CommonTopBar
 import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.News
 import com.kelompok1.polnesnews.ui.theme.PolnesGreen
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 import com.kelompok1.polnesnews.ui.theme.White
+// 🟢 Import SessionManager
+import com.kelompok1.polnesnews.utils.SessionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,10 +40,23 @@ fun AddANewArticleScreen(
     articleId: Int?,
     onBackClick: () -> Unit,
     onSubmitClick: () -> Unit,
-    onDeleteClick: () -> Unit // Parameter ini dibiarkan untuk menjaga kompatibilitas navigasi, meski tidak dipakai di UI
 ) {
+    // 🟢 Ambil ID Penulis (Author ID) dari Session Manager
+    val currentAuthorId = SessionManager.currentUser?.id
+
+    // 🟢 GUARD: Jika user belum login, tampilkan pesan error
+    if (currentAuthorId == null) {
+        Scaffold(topBar = { CommonTopBar(title = "Error", onBack = onBackClick) }) {
+            Box(modifier = Modifier.fillMaxSize().padding(it), contentAlignment = Alignment.Center) {
+                Text("Error: Anda harus login sebagai Editor untuk membuat artikel.")
+            }
+        }
+        return
+    }
+
     // --- Data Logic ---
     val isEditMode = articleId != null
+    // Gunakan find saja, karena kita tahu currentUser pasti ada di sini
     val articleToEdit: News? = if (isEditMode) { DummyData.newsList.find { it.id == articleId } } else { null }
 
     // State Form
@@ -62,21 +77,17 @@ fun AddANewArticleScreen(
     val categories = DummyData.categoryList
 
     Scaffold(
-        // Mengatur insets ke 0 agar TopBar bisa menyatu dengan status bar (hijau full)
         contentWindowInsets = WindowInsets(0.dp),
-
         topBar = {
-            // 🟢 MENGGUNAKAN COMMON TOP BAR
             CommonTopBar(
                 title = if (isEditMode) "Edit Article" else "Add a New Article",
                 onBack = onBackClick,
-                // Kita set WindowInsets(0.dp) di sini agar cocok dengan Scaffold
                 windowInsets = WindowInsets(0.dp)
-                // Actions dikosongkan -> Tombol Hapus Hilang
             )
         },
         floatingActionButton = {
             FloatingActionButton(
+                // 💡 Saat onSubmitClick dipanggil, kita tahu authorId-nya adalah currentAuthorId
                 onClick = { onSubmitClick() },
                 containerColor = PolnesGreen,
                 contentColor = White
@@ -108,14 +119,14 @@ fun AddANewArticleScreen(
                 singleLine = true
             )
 
-            // --- INPUT GAMBAR (Style Kotak) ---
+            // --- INPUT GAMBAR ---
             Text("Image", style = MaterialTheme.typography.titleMedium)
 
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(3f / 2f) // Ratio 3:2 landscape
+                    .aspectRatio(3f / 2f)
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .border(
@@ -125,26 +136,18 @@ fun AddANewArticleScreen(
                     )
                     .clickable { launcher.launch("image/*") }
             ) {
-                if (selectedImageUri != null) {
-                    // 1. Gambar Baru dari Galeri
-                    Image(
-                        painter = rememberAsyncImagePainter(selectedImageUri),
-                        contentDescription = "Selected Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                    Box(
-                        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Tap to change", color = Color.White, style = MaterialTheme.typography.labelMedium)
-                    }
-
+                val imagePainter = if (selectedImageUri != null) {
+                    rememberAsyncImagePainter(selectedImageUri)
                 } else if (isEditMode && articleToEdit != null) {
-                    // 2. Gambar Lama (Mode Edit)
+                    painterResource(id = articleToEdit.imageRes)
+                } else {
+                    null // Placeholder case
+                }
+
+                if (imagePainter != null) {
                     Image(
-                        painter = painterResource(id = articleToEdit.imageRes),
-                        contentDescription = "Current Image",
+                        painter = imagePainter,
+                        contentDescription = "Article Image",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
@@ -154,7 +157,6 @@ fun AddANewArticleScreen(
                     ) {
                         Text("Tap to change", color = Color.White, style = MaterialTheme.typography.labelMedium)
                     }
-
                 } else {
                     // 3. Kosong (Placeholder)
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -173,6 +175,7 @@ fun AddANewArticleScreen(
                     }
                 }
             }
+
 
             // --- INPUT KATEGORI ---
             Text("Category", style = MaterialTheme.typography.titleMedium)
@@ -230,7 +233,7 @@ fun AddANewArticleScreen(
 @Composable
 fun AddArticleScreenPreview() {
     PolnesNewsTheme {
-        AddANewArticleScreen(articleId = null, onBackClick = {}, onSubmitClick = {}, onDeleteClick = {})
+        AddANewArticleScreen(articleId = null, onBackClick = {}, onSubmitClick = {})
     }
 }
 
@@ -238,6 +241,6 @@ fun AddArticleScreenPreview() {
 @Composable
 fun EditArticleScreenPreview() {
     PolnesNewsTheme {
-        AddANewArticleScreen(articleId = 1, onBackClick = {}, onSubmitClick = {}, onDeleteClick = {})
+        AddANewArticleScreen(articleId = 1, onBackClick = {}, onSubmitClick = {})
     }
 }

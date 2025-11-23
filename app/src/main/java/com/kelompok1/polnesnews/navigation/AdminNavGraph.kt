@@ -81,7 +81,10 @@ fun AdminNavGraph(
             startDestination = "Dashboard",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("Dashboard") { AdminDashboardScreen(currentUser = currentUser) }
+            composable("Dashboard") {
+                // 🔴 HAPUS parameter currentUser
+                AdminDashboardScreen()
+            }
 
             composable("News") {
                 ManageNewsScreen(

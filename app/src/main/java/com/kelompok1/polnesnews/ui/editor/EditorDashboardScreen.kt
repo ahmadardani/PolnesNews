@@ -25,40 +25,45 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kelompok1.polnesnews.components.AccountInfoCard
 import com.kelompok1.polnesnews.model.DummyData
-import com.kelompok1.polnesnews.model.News
 import com.kelompok1.polnesnews.model.NewsStatus
-import com.kelompok1.polnesnews.model.UserRole
 import com.kelompok1.polnesnews.ui.theme.*
+// 🟢 Import SessionManager
+import com.kelompok1.polnesnews.utils.SessionManager
 
 @Composable
 fun EditorDashboardScreen(
-    editorId: Int,
+    // 🟢 Parameter editorId SUDAH DIHAPUS
     currentRoute: String,
     onNavigate: (String) -> Unit
 ) {
-    // --- 1. Ambil Data Editor ---
-    val currentUser = DummyData.userList.find { it.id == editorId }
+    // 🟢 1. Ambil Data Editor dari SessionManager
+    val currentUser = SessionManager.currentUser
 
-    // --- 2. Hitung Statistik (Khusus Editor Ini) ---
-    val myArticles = remember { DummyData.newsList.filter { it.authorId == editorId } }
+    // 🟢 2. Filter Berita Milik Editor Tersebut
+    // Menggunakan remember(currentUser) agar data refresh jika user berubah
+    val myArticles = remember(currentUser) {
+        DummyData.newsList.filter { it.authorId == currentUser?.id }
+    }
 
+    // --- 3. Hitung Statistik ---
     val totalViews = myArticles.sumOf { it.views }
-    val totalArticles = myArticles.size
+
     val approvedCount = myArticles.count { it.status == NewsStatus.PUBLISHED }
+
     val pendingCount = myArticles.count {
         it.status == NewsStatus.PENDING_REVIEW || it.status == NewsStatus.PENDING_UPDATE
     }
 
-    // Hitung Rating Rata-rata
-    val ratings = remember {
+    // Hitung Rating Rata-rata (Dari tabel comment yang newsId-nya milik editor ini)
+    val ratings = remember(myArticles) {
         DummyData.commentList.filter { comment ->
             myArticles.any { it.id == comment.newsId }
         }.map { it.rating }
     }
     val averageRating = if (ratings.isNotEmpty()) ratings.average() else 0.0
 
-    // Top 3 Artikel Saya (Berdasarkan Views)
-    val myTopArticles = remember {
+    // Top 3 Artikel Saya
+    val myTopArticles = remember(myArticles) {
         myArticles.sortedByDescending { it.views }.take(3)
     }
 
@@ -78,7 +83,7 @@ fun EditorDashboardScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 1. Header Akun (Agar personal)
+        // 1. Header Akun
         AccountInfoCard(
             fullName = currentUser?.name ?: "Editor",
             role = "Editor",
@@ -123,14 +128,14 @@ fun EditorDashboardScreen(
                     modifier = Modifier.weight(1f),
                     label = "Published",
                     value = approvedCount.toString(),
-                    containerColor = StatusPublishedBg, // Hijau Pucat
+                    containerColor = StatusPublishedBg, // Pastikan warna ini ada di Theme atau ganti Color.Green
                     contentColor = StatusPublishedText
                 )
                 EditorStatCard(
                     modifier = Modifier.weight(1f),
                     label = "Pending",
                     value = pendingCount.toString(),
-                    containerColor = StatusPendingBg, // Biru Pucat
+                    containerColor = StatusPendingBg, // Pastikan warna ini ada di Theme atau ganti Color.Yellow
                     contentColor = StatusPendingText
                 )
             }
@@ -197,7 +202,7 @@ fun EditorDashboardScreen(
 }
 
 // ------------------------------------------------
-// HELPER COMPONENTS (UI WIDGETS)
+// HELPER COMPONENTS
 // ------------------------------------------------
 
 @Composable
@@ -300,7 +305,6 @@ fun EditorRankCard(rank: Int, title: String, views: Int) {
 private fun EditorDashboardScreenPreview() {
     PolnesNewsTheme {
         EditorDashboardScreen(
-            editorId = 1,
             currentRoute = "editor_dashboard",
             onNavigate = {}
         )

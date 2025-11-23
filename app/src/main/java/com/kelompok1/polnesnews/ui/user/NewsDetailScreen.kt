@@ -18,6 +18,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kelompok1.polnesnews.components.*
 import com.kelompok1.polnesnews.model.DummyData
+// 🟢 1. Import SessionManager
+import com.kelompok1.polnesnews.utils.SessionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,17 +31,32 @@ fun NewsDetailScreen(
     val author = remember(news?.authorId) { DummyData.userList.find { it.id == news?.authorId } }
     val comments = remember(newsId) { DummyData.commentList.filter { it.newsId == newsId } }
 
-    // 🟢 STATE RATING (Diatur di sini, bukan di dalam komponen)
-    var userRating by remember { mutableIntStateOf(0) }
+    // 🟢 2. Ambil User yang sedang Login
+    val currentUser = SessionManager.currentUser
 
+    var userRating by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
 
-    // 🟢 LOGIKA KIRIM (Backend Dummy)
+    // 🟢 3. Update Logic Kirim
     fun submitRatingToDatabase() {
-        // Simulasi kirim ke database
-        Toast.makeText(context, "Rating $userRating bintang terkirim!", Toast.LENGTH_SHORT).show()
+        if (currentUser == null) {
+            // Jika entah kenapa user null (misal session habis), suruh login lagi
+            Toast.makeText(context, "Silakan login terlebih dahulu!", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        // Reset bintang jadi 0 setelah kirim
+        // DATA YANG AKAN DIKIRIM KE BACKEND:
+        val userId = currentUser.id
+        val newsIdToSend = newsId
+        val ratingValue = userRating
+
+        // Simulasi Kirim
+        Toast.makeText(
+            context,
+            "Rating $ratingValue bintang dari ${currentUser.name} terkirim!",
+            Toast.LENGTH_SHORT
+        ).show()
+
         userRating = 0
     }
 
@@ -65,7 +82,7 @@ fun NewsDetailScreen(
             modifier = Modifier.fillMaxSize().padding(innerPadding),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
-            // --- Bagian Header & Konten (Tidak Berubah) ---
+            // ... (Bagian Judul, Gambar, Author, Konten TETAP SAMA) ...
             item {
                 Text(
                     text = news.title,
@@ -91,8 +108,6 @@ fun NewsDetailScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 HtmlText(html = news.content, modifier = Modifier.padding(horizontal = 16.dp))
             }
-
-            // --- Video (Jika Ada) ---
             if (news.youtubeVideoId != null) {
                 item {
                     Spacer(modifier = Modifier.height(24.dp))
@@ -108,17 +123,16 @@ fun NewsDetailScreen(
                 }
             }
 
-            // 🟢 PEMANGGILAN KOMPONENT RATING
+            // 🟢 BAGIAN INPUT RATING
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 ArticleRatingInput(
-                    currentRating = userRating,          // Kirim nilai saat ini
-                    onRatingSelected = { userRating = it }, // Update nilai saat diklik
-                    onSubmit = { submitRatingToDatabase() } // Aksi saat tombol kirim ditekan
+                    currentRating = userRating,
+                    onRatingSelected = { userRating = it },
+                    onSubmit = { submitRatingToDatabase() }
                 )
             }
 
-            // --- List Rating User Lain ---
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(

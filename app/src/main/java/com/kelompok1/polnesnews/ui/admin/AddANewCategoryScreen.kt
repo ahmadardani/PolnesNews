@@ -31,9 +31,11 @@ import com.kelompok1.polnesnews.components.CommonTopBar
 import com.kelompok1.polnesnews.components.DeleteConfirmationDialog
 import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.Category
+import com.kelompok1.polnesnews.model.UserRole
 import com.kelompok1.polnesnews.ui.theme.PolnesGreen
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 import com.kelompok1.polnesnews.ui.theme.White
+import com.kelompok1.polnesnews.utils.SessionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +45,20 @@ fun AddANewCategoryScreen(
     onSubmitClick: () -> Unit,
     onDeleteClick: () -> Unit = {}
 ) {
+    // 🟢 GUARD: Cek Hak Akses
+    val currentUserRole = SessionManager.currentUser?.role
+
+    if (currentUserRole != UserRole.ADMIN) {
+        // Tampilkan pesan akses terbatas dan keluar dari Composable
+        Scaffold(topBar = { CommonTopBar(title = "Access Denied", onBack = onBackClick) }) {
+            Box(modifier = Modifier.fillMaxSize().padding(it), contentAlignment = Alignment.Center) {
+                Text("Error: Hanya Administrator yang dapat mengelola kategori.", color = MaterialTheme.colorScheme.error)
+            }
+        }
+        return
+    }
+
+    // --- Logic Form (Hanya dijalankan jika user adalah Admin) ---
     val isEditMode = categoryId != null
     val categoryToEdit: Category? = if (isEditMode) {
         DummyData.categoryList.find { it.id == categoryId }
@@ -67,6 +83,7 @@ fun AddANewCategoryScreen(
         actionIconContentColor = MaterialTheme.colorScheme.onPrimary
     )
 
+    // Dialog ini tetap ada, tapi hanya dipicu jika tombol delete di NavGraph/Body diaktifkan
     DeleteConfirmationDialog(
         showDialog = showDeleteDialog,
         onDismiss = { showDeleteDialog = false },
@@ -81,17 +98,9 @@ fun AddANewCategoryScreen(
                 onBack = onBackClick,
                 colors = topBarColors,
                 windowInsets = WindowInsets(0.dp),
+                // 🔴 ACTIONS: Dikosongkan (Tombol Hapus di TopBar hilang di Mode Edit)
                 actions = {
-                    // Tombol Hapus HANYA muncul di Mode Edit
-                    if (isEditMode) {
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete Category",
-                                tint = White
-                            )
-                        }
-                    }
+                    /* Dihapus sesuai permintaan user */
                 }
             )
         },
@@ -218,6 +227,10 @@ fun AddANewCategoryScreen(
                 color = Color.Gray
             )
 
+            // 💡 Catatan: Jika ingin tombol Hapus muncul di bagian bawah form,
+            // kamu bisa menambahkannya di sini dan memanggil showDeleteDialog = true
+            // Button(onClick = { showDeleteDialog = true }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) { ... }
+
             Spacer(modifier = Modifier.height(80.dp))
         }
     }
@@ -242,7 +255,6 @@ private fun AddCategoryPreview() {
 private fun EditCategoryPreview() {
     PolnesNewsTheme {
         // Menggunakan ID 1 dari DummyData (Teknologi)
-        // Harusnya muncul tulisan "Teknologi", gambarnya ada, dan ada ikon SAMPAH di atas
         AddANewCategoryScreen(
             categoryId = 1,
             onBackClick = {},

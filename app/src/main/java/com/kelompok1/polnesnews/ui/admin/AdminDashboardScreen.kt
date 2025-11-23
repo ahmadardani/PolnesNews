@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,13 +32,17 @@ import com.kelompok1.polnesnews.model.News
 import com.kelompok1.polnesnews.model.NewsStatus
 import com.kelompok1.polnesnews.model.User
 import com.kelompok1.polnesnews.model.UserRole
-import com.kelompok1.polnesnews.ui.theme.* // 🟢 Import semua warna dari Color.kt
+import com.kelompok1.polnesnews.ui.theme.*
+import com.kelompok1.polnesnews.utils.SessionManager // 🟢 Import SessionManager
 
 @Composable
 fun AdminDashboardScreen(
-    currentUser: User?
+    // Parameter dihapus, karena currentUser diambil dari SessionManager
 ) {
-    // --- 1. Hitung Data Statistik ---
+    // 🟢 Ambil user dari SessionManager
+    val currentUser = SessionManager.currentUser
+
+    // --- 1. Hitung Data Statistik Global ---
     val pendingNews = DummyData.newsList.count {
         it.status == NewsStatus.PENDING_REVIEW || it.status == NewsStatus.PENDING_DELETION
     }
@@ -87,6 +92,7 @@ fun AdminDashboardScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Info Akun
         AccountInfoCard(
             fullName = currentUser?.name ?: "Admin",
             role = "Administrator",
@@ -105,38 +111,32 @@ fun AdminDashboardScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // 🟢 REVISI WARNA SYSTEM OVERVIEW 🟢
-            // Menggunakan referensi dari Color.kt agar konsisten dan terbaca di Dark Mode
-
-            // Row 1: Status Berita (Pake warna Semantik Status)
+            // Row 1: Status Berita
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Card: Need Review (Pakai Warna Pending dari Color.kt)
                 AdminStatCard(
                     modifier = Modifier.weight(1f),
                     label = "Need Review",
                     count = pendingNews.toString(),
-                    containerColor = StatusPendingBg, // Biru Pucat
-                    contentColor = StatusPendingText  // Biru Tua
+                    containerColor = StatusPendingBg,
+                    contentColor = StatusPendingText
                 )
-                // Card: Published (Pakai Warna Published dari Color.kt)
                 AdminStatCard(
                     modifier = Modifier.weight(1f),
                     label = "Published",
                     count = publishedNews.toString(),
-                    containerColor = StatusPublishedBg, // Hijau Pucat
-                    contentColor = StatusPublishedText  // Hijau Tua
+                    containerColor = StatusPublishedBg,
+                    contentColor = StatusPublishedText
                 )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Row 2: Users (Pakai Warna Theme - PolnesGreen derivatives)
+            // Row 2: Users
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 AdminStatCard(
                     modifier = Modifier.weight(1f),
                     label = "Total Editors",
                     count = totalEditors.toString(),
-                    // Tertiary Container biasanya warna aksen yang kontras
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                     contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                 )
@@ -144,7 +144,6 @@ fun AdminDashboardScreen(
                     modifier = Modifier.weight(1f),
                     label = "Total Readers",
                     count = totalReaders.toString(),
-                    // Surface Variant aman untuk Dark Mode (abu-abu/neutral)
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -152,13 +151,12 @@ fun AdminDashboardScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Row 3: Engagement (Pakai Warna Theme)
+            // Row 3: Engagement
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 AdminStatCard(
                     modifier = Modifier.weight(1f),
                     label = "Total Views",
                     count = totalViews.toString(),
-                    // Secondary Container (Biasanya senada dengan Primary tapi lebih soft)
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 )
@@ -199,7 +197,6 @@ fun AdminDashboardScreen(
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     topNews.forEachIndexed { index, news ->
-                        // Menggunakan SimpleRankCard (Tanpa Logo Besar)
                         SimpleRankCard(
                             rank = index + 1,
                             title = news.title,
@@ -212,7 +209,7 @@ fun AdminDashboardScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- SECTION 4: TOP RATED (RATING) - FITUR BARU ---
+            // --- SECTION 4: TOP RATED (RATING) ---
             SectionHeader(title = "Highest Rated Stories", icon = Icons.Outlined.ThumbUp)
             if (topRatedNews.isEmpty()) {
                 Text("No ratings yet.", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -266,7 +263,6 @@ fun SectionHeader(title: String, icon: androidx.compose.ui.graphics.vector.Image
     }
 }
 
-// 1. Admin Stat Card (Revisi Warna)
 @Composable
 fun AdminStatCard(
     modifier: Modifier = Modifier,
@@ -302,7 +298,6 @@ fun AdminStatCard(
     }
 }
 
-// 2. Simple Rank Card (Minimalis, Tanpa Logo/Gambar Besar)
 @Composable
 fun SimpleRankCard(
     rank: Int,
@@ -312,7 +307,6 @@ fun SimpleRankCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(
-            // Surface color (Putih di Light, Gelap di Dark)
             containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(1.dp),
@@ -324,7 +318,6 @@ fun SimpleRankCard(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Rank
             Text(
                 text = "#$rank",
                 style = MaterialTheme.typography.titleMedium,
@@ -334,7 +327,6 @@ fun SimpleRankCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Judul
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
@@ -347,7 +339,6 @@ fun SimpleRankCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Metric (Views/Rating)
             Text(
                 text = metricValue,
                 style = MaterialTheme.typography.labelMedium,
@@ -358,9 +349,12 @@ fun SimpleRankCard(
     }
 }
 
-// 3. Top Editor Card (Tetap pakai avatar kecil)
 @Composable
 fun TopEditorItemCard(rank: Int, user: User, rating: Double) {
+    // 🟢 Tentukan Warna Editor
+    val bgColor = StatusPendingBg
+    val contentColor = StatusPendingText
+
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp),
@@ -372,18 +366,19 @@ fun TopEditorItemCard(rank: Int, user: User, rating: Double) {
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Rank Avatar
+            // 🟢 Icon Rank (Fix Warna Editor)
             Box(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(bgColor), // Background Biru Pucat
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = user.name.take(1).uppercase(),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                Icon(
+                    imageVector = Icons.Outlined.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = contentColor // Icon Biru Tua
                 )
             }
 
@@ -432,7 +427,6 @@ fun TopEditorItemCard(rank: Int, user: User, rating: Double) {
     }
 }
 
-// 4. Pie Chart
 @Composable
 fun SimplePieChart(data: List<Pair<String, Int>>) {
     val total = data.sumOf { it.second }.toFloat()
@@ -478,6 +472,7 @@ fun SimplePieChart(data: List<Pair<String, Int>>) {
             }
         }
 
+        // LEGEND SECTION (Fix Box Error)
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             data.forEachIndexed { index, pair ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -485,8 +480,9 @@ fun SimplePieChart(data: List<Pair<String, Int>>) {
                         modifier = Modifier
                             .size(12.dp)
                             .clip(CircleShape)
-                            .background(chartColors.getOrElse(index) { Color.Gray })
-                    )
+                            .background(chartColors.getOrElse(index) { Color.Gray }),
+                        contentAlignment = Alignment.Center
+                    ) {} // 🟢 FIX: Tambahkan blok konten kosong
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
@@ -507,11 +503,11 @@ fun SimplePieChart(data: List<Pair<String, Int>>) {
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
 private fun AdminDashboardPreview() {
     PolnesNewsTheme {
-        val mockAdmin = DummyData.userList.find { it.role == UserRole.ADMIN }
-        AdminDashboardScreen(currentUser = mockAdmin)
+        AdminDashboardScreen()
     }
 }

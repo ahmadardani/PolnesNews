@@ -24,17 +24,22 @@ import com.kelompok1.polnesnews.components.ConfirmationDialog
 import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.News
 import com.kelompok1.polnesnews.model.NewsStatus
-import com.kelompok1.polnesnews.model.UserRole
 import com.kelompok1.polnesnews.ui.theme.ActionDeleteIcon
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 import com.kelompok1.polnesnews.ui.theme.White
+// 🟢 Import SessionManager
+import com.kelompok1.polnesnews.utils.SessionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YourArticleScreen(navController: NavHostController) {
-    // 1. Data Awal
-    val currentEditor = DummyData.userList.find { it.role == UserRole.EDITOR && it.id == 1 }
-    val allEditorArticles = remember { DummyData.newsList.filter { it.authorId == currentEditor?.id } }
+    // 🟢 1. Data Awal: Ambil dari SessionManager (Bukan hardcoded lagi)
+    val currentUser = SessionManager.currentUser
+
+    // Filter artikel hanya milik user yang sedang login
+    val allEditorArticles = remember(currentUser) {
+        DummyData.newsList.filter { it.authorId == currentUser?.id }
+    }
 
     // 2. State Search
     var searchQuery by remember { mutableStateOf("") }
