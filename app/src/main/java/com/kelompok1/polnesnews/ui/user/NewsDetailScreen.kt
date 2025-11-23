@@ -2,6 +2,7 @@ package com.kelompok1.polnesnews.ui.user
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,10 +25,23 @@ fun NewsDetailScreen(
     onNavigateBack: () -> Unit,
     newsId: Int
 ) {
-    // Mengambil data berita berdasarkan ID yang dikirim
     val news = remember(newsId) { DummyData.newsList.find { it.id == newsId } }
     val author = remember(news?.authorId) { DummyData.userList.find { it.id == news?.authorId } }
     val comments = remember(newsId) { DummyData.commentList.filter { it.newsId == newsId } }
+
+    // 🟢 STATE RATING (Diatur di sini, bukan di dalam komponen)
+    var userRating by remember { mutableIntStateOf(0) }
+
+    val context = LocalContext.current
+
+    // 🟢 LOGIKA KIRIM (Backend Dummy)
+    fun submitRatingToDatabase() {
+        // Simulasi kirim ke database
+        Toast.makeText(context, "Rating $userRating bintang terkirim!", Toast.LENGTH_SHORT).show()
+
+        // Reset bintang jadi 0 setelah kirim
+        userRating = 0
+    }
 
     Scaffold(
         topBar = {
@@ -39,9 +53,7 @@ fun NewsDetailScreen(
     ) { innerPadding ->
         if (news == null) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
+                modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
                 Text("Berita tidak ditemukan.")
@@ -49,15 +61,11 @@ fun NewsDetailScreen(
             return@Scaffold
         }
 
-        val context = LocalContext.current
-
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
-            // Judul Artikel
+            // --- Bagian Header & Konten (Tidak Berubah) ---
             item {
                 Text(
                     text = news.title,
@@ -66,81 +74,61 @@ fun NewsDetailScreen(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
-
-            // Gambar Utama
             item {
                 Spacer(modifier = Modifier.height(16.dp))
                 Image(
                     painter = painterResource(id = news.imageRes),
                     contentDescription = news.title,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(16f / 9f)
+                    modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)
                 )
             }
-
-            // Info Author & Tanggal
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                AuthorDateRow(
-                    authorName = author?.name ?: "Unknown",
-                    date = news.date
-                )
+                AuthorDateRow(authorName = author?.name ?: "Unknown", date = news.date)
             }
-
-            // Konten Artikel (HTML)
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                HtmlText(
-                    html = news.content,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                HtmlText(html = news.content, modifier = Modifier.padding(horizontal = 16.dp))
             }
 
-            // Video Thumbnail (jika ada)
+            // --- Video (Jika Ada) ---
             if (news.youtubeVideoId != null) {
                 item {
                     Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        text = "Video",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
-                    )
-
+                    Text(text = "Video", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 16.dp))
                     VideoThumbnailCard(
                         youtubeVideoId = news.youtubeVideoId,
                         onClick = {
-                            val webIntent = Intent(
-                                Intent.ACTION_VIEW,
-                                Uri.parse("https://www.youtube.com/watch?v=${news.youtubeVideoId}")
-                            )
+                            val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=${news.youtubeVideoId}"))
                             context.startActivity(webIntent)
                         },
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                 }
             }
 
-            // Input Rating
+            // 🟢 PEMANGGILAN KOMPONENT RATING
             item {
                 Spacer(modifier = Modifier.height(24.dp))
-                ArticleRatingInput()
+                ArticleRatingInput(
+                    currentRating = userRating,          // Kirim nilai saat ini
+                    onRatingSelected = { userRating = it }, // Update nilai saat diklik
+                    onSubmit = { submitRatingToDatabase() } // Aksi saat tombol kirim ditekan
+                )
             }
 
-            // Judul Ratings
+            // --- List Rating User Lain ---
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "User Ratings",
+                    text = "Rating Pengguna Lain",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
 
-            // Ringkasan Rating
             item {
                 RatingSummary(comments = comments)
             }
@@ -151,8 +139,5 @@ fun NewsDetailScreen(
 @Preview(showBackground = true)
 @Composable
 private fun NewsDetailScreenPreview() {
-    NewsDetailScreen(
-        onNavigateBack = {},
-        newsId = 1
-    )
+    NewsDetailScreen(onNavigateBack = {}, newsId = 1)
 }
