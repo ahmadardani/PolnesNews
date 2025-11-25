@@ -1,6 +1,5 @@
 package com.kelompok1.polnesnews.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,12 +12,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage // 🟢 WAJIB: Import Coil
 import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.News
 
@@ -34,11 +33,12 @@ fun NewsCard(
             .fillMaxWidth()
             .aspectRatio(3f / 2f)
             .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(8.dp)) // Clip ditaruh sebelum clickable atau sesudah tergantung efek ripple yang diinginkan
             .clickable { onClick() }
-            .clip(RoundedCornerShape(8.dp))
     ) {
-        Image(
-            painter = painterResource(id = news.imageRes),
+        // 🟢 REVISI: Menggunakan AsyncImage untuk URL
+        AsyncImage(
+            model = news.imageUrl, // Mengambil String URL dari model News
             contentDescription = news.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -61,7 +61,7 @@ fun NewsCard(
                 .padding(12.dp)
         ) {
             Text(
-                text = categoryName, // ✅ pakai nama kategori
+                text = categoryName,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White,
                 fontSize = 14.sp

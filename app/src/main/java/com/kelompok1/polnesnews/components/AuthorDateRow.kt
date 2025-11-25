@@ -7,11 +7,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 /**
  * A reusable row displaying article author and publication date.
  * Used in article-related screens such as NewsDetailScreen.
+ * * Komponen ini aman dari perubahan model karena hanya menerima String.
  */
 @Composable
 fun AuthorDateRow(
@@ -42,7 +44,11 @@ fun AuthorDateRow(
                     fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.bodyMedium
                 )
-                Text(text = authorName, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = authorName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center
+                )
             }
         }
 
@@ -63,8 +69,18 @@ fun AuthorDateRow(
                     fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.bodyMedium
                 )
-                Text(text = date, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                Text(
+                    text = date,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AuthorDateRowPreview() {
+    AuthorDateRow(authorName = "Ade Darmawan", date = "Tuesday, 04 Nov 2025")
 }

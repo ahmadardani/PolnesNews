@@ -1,6 +1,5 @@
 package com.kelompok1.polnesnews.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,12 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage // WAJIB: Import Coil
 import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.News
 import com.kelompok1.polnesnews.model.NewsStatus
@@ -34,7 +32,7 @@ fun ArticleCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Tentukan apakah tombol harus dinonaktifkan (misal: sedang direview)
+    // Tentukan apakah tombol harus dinonaktifkan (Logic tetap aman dengan String)
     val isLocked = article.status == NewsStatus.PENDING_REVIEW ||
             article.status == NewsStatus.PENDING_DELETION ||
             article.status == NewsStatus.PENDING_UPDATE
@@ -55,9 +53,9 @@ fun ArticleCard(
                 modifier = Modifier.padding(12.dp),
                 verticalAlignment = Alignment.Top
             ) {
-                // 1. Gambar Thumbnail
-                Image(
-                    painter = painterResource(id = article.imageRes),
+                // 1. Gambar Thumbnail (REVISI: Pakai AsyncImage)
+                AsyncImage(
+                    model = article.imageUrl, // Mengambil URL String
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -99,15 +97,12 @@ fun ArticleCard(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Status Chip
+                    // Status Chip (Sudah kompatibel karena status = String)
                     StatusChip(status = article.status)
                 }
             }
 
             // --- BAGIAN BAWAH: TOMBOL AKSI (OUTLINE) ---
-            // Kita sembunyikan tombol jika statusnya Pending (Locked),
-            // atau bisa juga dimatikan (enabled = false).
-            // Di sini saya pilih disable tombolnya agar user tau fiturnya ada tapi sedang tidak bisa dipakai.
             Divider(color = Color.Gray.copy(alpha = 0.1f))
 
             Row(

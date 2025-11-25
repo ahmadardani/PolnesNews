@@ -18,8 +18,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kelompok1.polnesnews.model.Category
-import com.kelompok1.polnesnews.ui.theme.*
-
+// Pastikan import theme Anda benar, jika ActionEditBg error, ganti warna manual
+// import com.kelompok1.polnesnews.ui.theme.* @Composable
 @Composable
 fun AdminCategoryCard(
     category: Category,
@@ -43,15 +43,16 @@ fun AdminCategoryCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    // 🟢 GANTI BACKGROUND JADI HIJAU MUDA (Sama kayak User Card)
+                    // Menggunakan warna Hijau Muda (Sama kayak User Card yang Anda minta)
                     .background(Color(0xFFA3E5A6)),
                 contentAlignment = Alignment.Center
             ) {
+                // Mengambil huruf depan nama kategori (Misal: "T" dari "Teknologi")
                 Text(
                     text = category.name.take(1).uppercase(),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    // 🟢 GANTI TEKS JADI HIJAU TUA (Sama kayak User Card)
+                    // Warna Hijau Tua
                     color = Color(0xFF50AE5E)
                 )
             }
@@ -71,8 +72,8 @@ fun AdminCategoryCard(
                 onClick = onEditClick,
                 modifier = Modifier.size(36.dp),
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = ActionEditBg,
-                    contentColor = ActionEditIcon
+                    containerColor = Color(0xFFFFF3E0), // Warna background tombol edit (Orange muda)
+                    contentColor = Color(0xFFFF9800)    // Icon Orange
                 )
             ) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(18.dp))
@@ -85,8 +86,8 @@ fun AdminCategoryCard(
                 onClick = onDeleteClick,
                 modifier = Modifier.size(36.dp),
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = ActionDeleteBg,
-                    contentColor = ActionDeleteIcon
+                    containerColor = Color(0xFFFFEBEE), // Warna background tombol delete (Merah muda)
+                    contentColor = Color(0xFFF44336)    // Icon Merah
                 )
             ) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete", modifier = Modifier.size(18.dp))
@@ -98,10 +99,10 @@ fun AdminCategoryCard(
 @Preview(showBackground = true)
 @Composable
 private fun AdminCategoryCardPreview() {
-    PolnesNewsTheme {
-        val dummyCategory = Category(1, "Technology", 0)
-        Box(modifier = Modifier.padding(16.dp)) {
-            AdminCategoryCard(category = dummyCategory, onEditClick = {}, onDeleteClick = {})
-        }
+    // REVISI DISINI: Mengirim string kosong "" untuk imageUrl, bukan angka 0.
+    val dummyCategory = Category(1, "Technology", "")
+
+    Box(modifier = Modifier.padding(16.dp)) {
+        AdminCategoryCard(category = dummyCategory, onEditClick = {}, onDeleteClick = {})
     }
 }

@@ -13,8 +13,8 @@ import androidx.compose.ui.unit.dp
 import com.kelompok1.polnesnews.model.NewsStatus
 
 @Composable
-fun StatusChip(status: NewsStatus) {
-    // Tentukan Warna Background dan Warna Teks berdasarkan Status
+fun StatusChip(status: String) {
+    // Tentukan Warna Background dan Warna Teks berdasarkan Status String
     val (bgColor, textColor) = when (status) {
         NewsStatus.DRAFT -> Pair(
             Color(0xFFE0E0E0), // Abu-abu muda
@@ -40,6 +40,10 @@ fun StatusChip(status: NewsStatus) {
             Color(0xFFE3F2FD), // Biru muda
             Color(0xFF1565C0)  // Biru tua
         )
+        else -> Pair(
+            Color(0xFFF5F5F5), // Default Grey
+            Color(0xFF9E9E9E)
+        )
     }
 
     // Tentukan Teks Label agar lebih rapi (bukan PENDING_REVIEW tapi Pending Review)
@@ -50,6 +54,7 @@ fun StatusChip(status: NewsStatus) {
         NewsStatus.REJECTED -> "Rejected"
         NewsStatus.PENDING_DELETION -> "Request Delete"
         NewsStatus.PENDING_UPDATE -> "Request Update"
+        else -> status // Jika status tidak dikenal, tampilkan apa adanya
     }
 
     Surface(

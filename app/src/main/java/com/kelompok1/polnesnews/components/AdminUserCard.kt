@@ -19,7 +19,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kelompok1.polnesnews.model.User
 import com.kelompok1.polnesnews.model.UserRole
-import com.kelompok1.polnesnews.ui.theme.* // Import warna tema
 
 @Composable
 fun AdminUserCard(
@@ -27,11 +26,12 @@ fun AdminUserCard(
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    // 1. Tentukan Warna Berdasarkan Role (Agar Avatar & Chip Senada)
+    // 1. Tentukan Warna Berdasarkan Role (Konsisten dengan AccountInfoCard)
     val (mainColorBg, mainColorText) = when (user.role) {
-        UserRole.EDITOR -> Pair(StatusPendingBg, StatusPendingText)     // Biru
-        UserRole.USER -> Pair(StatusPublishedBg, StatusPublishedText)   // Hijau
-        UserRole.ADMIN -> Pair(StatusDraftBg, StatusDraftText)          // Kuning/Orange
+        UserRole.EDITOR -> Pair(Color(0xFFE3F2FD), Color(0xFF2196F3)) // Biru
+        UserRole.USER -> Pair(Color(0xFFE8F5E9), Color(0xFF4CAF50))   // Hijau
+        UserRole.ADMIN -> Pair(Color(0xFFFFF3E0), Color(0xFFFF9800))  // Orange
+        else -> Pair(Color(0xFFF5F5F5), Color(0xFF9E9E9E))            // Default
     }
 
     Card(
@@ -77,7 +77,7 @@ fun AdminUserCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // --- Role Chip (Gaya StatusChip) ---
+                // --- Role Chip ---
                 UserRoleChip(role = user.role)
             }
 
@@ -87,8 +87,8 @@ fun AdminUserCard(
                 onClick = onEditClick,
                 modifier = Modifier.size(36.dp),
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = ActionEditBg,
-                    contentColor = ActionEditIcon
+                    containerColor = Color(0xFFFFF3E0), // Orange Muda
+                    contentColor = Color(0xFFFF9800)    // Orange
                 )
             ) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(18.dp))
@@ -101,8 +101,8 @@ fun AdminUserCard(
                 onClick = onDeleteClick,
                 modifier = Modifier.size(36.dp),
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = ActionDeleteBg,
-                    contentColor = ActionDeleteIcon
+                    containerColor = Color(0xFFFFEBEE), // Merah Muda
+                    contentColor = Color(0xFFF44336)    // Merah
                 )
             ) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete", modifier = Modifier.size(18.dp))
@@ -112,12 +112,13 @@ fun AdminUserCard(
 }
 
 @Composable
-fun UserRoleChip(role: UserRole) {
-    // Logika Warna: Mengikuti pola StatusChip
+fun UserRoleChip(role: String) {
+    // Logika Warna Chip (Sama dengan Card)
     val (bgColor, textColor) = when (role) {
-        UserRole.EDITOR -> Pair(StatusPendingBg, StatusPendingText)     // Biru
-        UserRole.USER -> Pair(StatusPublishedBg, StatusPublishedText)   // Hijau
-        UserRole.ADMIN -> Pair(StatusDraftBg, StatusDraftText)          // Kuning
+        UserRole.EDITOR -> Pair(Color(0xFFE3F2FD), Color(0xFF2196F3))
+        UserRole.USER -> Pair(Color(0xFFE8F5E9), Color(0xFF4CAF50))
+        UserRole.ADMIN -> Pair(Color(0xFFFFF3E0), Color(0xFFFF9800))
+        else -> Pair(Color(0xFFF5F5F5), Color(0xFF9E9E9E))
     }
 
     Surface(
@@ -125,7 +126,7 @@ fun UserRoleChip(role: UserRole) {
         shape = RoundedCornerShape(50) // Bentuk kapsul penuh
     ) {
         Text(
-            text = role.name, // Menampilkan "EDITOR", "USER", dll
+            text = role, // REVISI: Langsung tampilkan string role (karena sudah String)
             style = MaterialTheme.typography.labelSmall,
             color = textColor,
             fontWeight = FontWeight.Bold,
@@ -137,21 +138,19 @@ fun UserRoleChip(role: UserRole) {
 @Preview(showBackground = true)
 @Composable
 private fun AdminUserCardPreview() {
-    PolnesNewsTheme {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Preview Editor
-            AdminUserCard(
-                user = User(1, "Editor Name", "editor@polnes.id", "pass", UserRole.EDITOR),
-                onEditClick = {}, onDeleteClick = {}
-            )
-            // Preview User Biasa
-            AdminUserCard(
-                user = User(2, "User Name", "user@gmail.com", "pass", UserRole.USER),
-                onEditClick = {}, onDeleteClick = {}
-            )
-        }
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Preview Editor
+        AdminUserCard(
+            user = User(1, "Editor Name", "editor@polnes.id", "pass", UserRole.EDITOR),
+            onEditClick = {}, onDeleteClick = {}
+        )
+        // Preview User Biasa
+        AdminUserCard(
+            user = User(2, "User Name", "user@gmail.com", "pass", UserRole.ADMIN),
+            onEditClick = {}, onDeleteClick = {}
+        )
     }
 }
