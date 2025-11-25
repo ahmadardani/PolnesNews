@@ -1,6 +1,6 @@
 package com.kelompok1.polnesnews.navigation
 
-// 🟢 Tambahkan Import Animasi
+import android.widget.Toast
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -11,27 +11,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import android.widget.Toast
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.kelompok1.polnesnews.components.AdminBottomNav
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.model.User
 import com.kelompok1.polnesnews.ui.admin.*
-import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
 import com.kelompok1.polnesnews.ui.common.AboutScreen
+import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminNavGraph(
     rootNavController: NavHostController,
-    currentUser: User?,
+    currentUser: User?, // Menggunakan Model User yang baru (Role = String)
     onLogout: () -> Unit
 ) {
     val adminNavController = rememberNavController()
@@ -42,6 +41,7 @@ fun AdminNavGraph(
 
     val adminMainScreens = listOf("Dashboard", "News", "Categories", "Users", "Settings")
 
+    // Logic menyembunyikan bottom bar di sub-menu
     val showBars = adminMainScreens.any { currentRoute.startsWith(it) } &&
             !currentRoute.startsWith("add_category") &&
             !currentRoute.startsWith("edit_article")
@@ -81,7 +81,7 @@ fun AdminNavGraph(
             navController = adminNavController,
             startDestination = "Dashboard",
             modifier = Modifier.padding(innerPadding),
-            // 🟢 ANIMASI TRANSISI (Sama dengan UserNavGraph)
+            // Animasi Transisi
             enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300)) },
             exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300)) },
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300)) },

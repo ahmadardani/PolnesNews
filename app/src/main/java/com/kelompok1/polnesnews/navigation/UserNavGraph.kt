@@ -20,9 +20,9 @@ import androidx.navigation.navArgument
 import com.kelompok1.polnesnews.components.PolnesTopAppBar
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.components.UserBottomNav
-import com.kelompok1.polnesnews.ui.user.*
-import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
 import com.kelompok1.polnesnews.ui.common.AboutScreen
+import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
+import com.kelompok1.polnesnews.ui.user.*
 import com.kelompok1.polnesnews.utils.SessionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,7 +81,7 @@ fun UserNavGraph(
                 HomeScreen(
                     onViewAllRecent = { userNavController.navigate("RecentNews") },
                     onViewAllMostViewed = { userNavController.navigate("MostViewedNews") },
-                    onViewAllMostRated = { userNavController.navigate("MostRatedNews") }, // 🟢 Navigasi Baru
+                    onViewAllMostRated = { userNavController.navigate("MostRatedNews") },
                     onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
@@ -90,6 +90,7 @@ fun UserNavGraph(
             composable("Categories") {
                 CategoriesScreen(
                     onCategoryClick = { categoryName ->
+                        // Pass Category Name sebagai String (URL Safe)
                         userNavController.navigate("CategorySelected/$categoryName")
                     }
                 )
@@ -149,7 +150,7 @@ fun UserNavGraph(
                 )
             }
 
-            // 🟢 List Berita: Most Rated (BARU)
+            // List Berita: Most Rated
             composable("MostRatedNews") {
                 MostRatedNewsScreen(
                     onNavigateBack = { userNavController.popBackStack() },

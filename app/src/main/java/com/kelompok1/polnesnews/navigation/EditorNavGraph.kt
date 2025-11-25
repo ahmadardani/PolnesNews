@@ -1,7 +1,6 @@
 package com.kelompok1.polnesnews.navigation
 
 import android.widget.Toast
-// 🟢 Tambahkan Import Animasi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -22,18 +21,18 @@ import androidx.navigation.navArgument
 import com.kelompok1.polnesnews.components.EditorBottomNav
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.model.User
+import com.kelompok1.polnesnews.ui.common.AboutScreen
+import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
+import com.kelompok1.polnesnews.ui.editor.AddANewArticleScreen
 import com.kelompok1.polnesnews.ui.editor.EditorDashboardScreen
 import com.kelompok1.polnesnews.ui.editor.EditorSettingsScreen
 import com.kelompok1.polnesnews.ui.editor.YourArticleScreen
-import com.kelompok1.polnesnews.ui.editor.AddANewArticleScreen
-import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
-import com.kelompok1.polnesnews.ui.common.AboutScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorNavGraph(
     rootNavController: NavHostController,
-    currentUser: User?,
+    currentUser: User?, // Menggunakan Model User baru
     onLogout: () -> Unit
 ) {
     val editorNavController = rememberNavController()
@@ -74,7 +73,7 @@ fun EditorNavGraph(
             navController = editorNavController,
             startDestination = "editor_dashboard",
             modifier = Modifier.padding(innerPadding),
-            // 🟢 ANIMASI TRANSISI (Sama dengan UserNavGraph)
+            // Animasi Transisi
             enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300)) },
             exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300)) },
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300)) },
@@ -84,7 +83,7 @@ fun EditorNavGraph(
             composable("editor_dashboard") {
                 EditorDashboardScreen(
                     currentRoute = "editor_dashboard",
-                    onNavigate = { /* ... */ }
+                    onNavigate = { /* Logic internal dashboard jika ada */ }
                 )
             }
 
@@ -129,7 +128,8 @@ fun EditorNavGraph(
                     articleId = finalArticleId,
                     onBackClick = { editorNavController.popBackStack() },
                     onSubmitClick = {
-                        Toast.makeText(context, "Article Submitted!", Toast.LENGTH_SHORT).show()
+                        val msg = if (finalArticleId == null) "Article Created!" else "Article Updated!"
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                         editorNavController.popBackStack()
                     }
                 )

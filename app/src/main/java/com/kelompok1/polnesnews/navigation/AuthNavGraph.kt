@@ -38,6 +38,7 @@ fun AuthNavGraph(
                 authNavController = authNavController,
                 onLoginSubmitted = { emailInput, passwordInput ->
 
+                    // Mencari user di DummyData (sebagai simulasi backend)
                     val matchedUser = DummyData.userList.find {
                         it.email == emailInput && it.password == passwordInput
                     }
@@ -45,7 +46,8 @@ fun AuthNavGraph(
                     if (matchedUser != null) {
                         SessionManager.currentUser = matchedUser
 
-                        // NAVIGASI HARUS SESUAI DENGAN MAIN ACTIVITY
+                        // CHECK ROLE: Karena sekarang Role adalah String, kita bandingkan dengan String Constant
+                        // Logika ini aman dan sesuai dengan perubahan model UserRole object.
                         when (matchedUser.role) {
                             UserRole.EDITOR -> {
                                 rootNavController.navigate("editor_root") {
@@ -53,13 +55,18 @@ fun AuthNavGraph(
                                 }
                             }
                             UserRole.USER -> {
-                                // Pastikan ini "user_root", BUKAN "user_app"
                                 rootNavController.navigate("user_root") {
                                     popUpTo("auth_graph") { inclusive = true }
                                 }
                             }
                             UserRole.ADMIN -> {
                                 rootNavController.navigate("admin_root") {
+                                    popUpTo("auth_graph") { inclusive = true }
+                                }
+                            }
+                            else -> {
+                                // Fallback jika role string tidak dikenali (default ke user)
+                                rootNavController.navigate("user_root") {
                                     popUpTo("auth_graph") { inclusive = true }
                                 }
                             }
