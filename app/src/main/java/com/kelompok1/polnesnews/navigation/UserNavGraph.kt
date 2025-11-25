@@ -23,7 +23,7 @@ import com.kelompok1.polnesnews.components.UserBottomNav
 import com.kelompok1.polnesnews.ui.user.*
 import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
 import com.kelompok1.polnesnews.ui.common.AboutScreen
-import com.kelompok1.polnesnews.utils.SessionManager
+// 🔴 Import SessionManager DIHAPUS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +81,7 @@ fun UserNavGraph(
                 HomeScreen(
                     onViewAllRecent = { userNavController.navigate("RecentNews") },
                     onViewAllMostViewed = { userNavController.navigate("MostViewedNews") },
-                    onViewAllMostRated = { userNavController.navigate("MostRatedNews") }, // 🟢 Navigasi Baru
+                    onViewAllMostRated = { userNavController.navigate("MostRatedNews") },
                     onNewsClick = { newsId -> userNavController.navigate("NewsDetail/$newsId") }
                 )
             }
@@ -108,7 +108,7 @@ fun UserNavGraph(
             composable("Settings") {
                 SettingsScreen(
                     onLogout = {
-                        SessionManager.currentUser = null
+                        // 🔴 REVISI LOGOUT: Langsung navigasi ke Auth Graph
                         rootNavController.navigate("auth_graph") {
                             popUpTo("user_root") { inclusive = true }
                         }
@@ -149,7 +149,7 @@ fun UserNavGraph(
                 )
             }
 
-            // 🟢 List Berita: Most Rated (BARU)
+            // List Berita: Most Rated
             composable("MostRatedNews") {
                 MostRatedNewsScreen(
                     onNavigateBack = { userNavController.popBackStack() },

@@ -18,8 +18,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kelompok1.polnesnews.components.*
 import com.kelompok1.polnesnews.model.DummyData
-// 🟢 1. Import SessionManager
-import com.kelompok1.polnesnews.utils.SessionManager
+
+// 🟢 SessionManager sudah DIHAPUS dari import
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,36 +27,33 @@ fun NewsDetailScreen(
     onNavigateBack: () -> Unit,
     newsId: Int
 ) {
+    val context = LocalContext.current
+
+    // Data Berita (Masih pakai DummyData untuk konten agar tidak kosong)
     val news = remember(newsId) { DummyData.newsList.find { it.id == newsId } }
     val author = remember(news?.authorId) { DummyData.userList.find { it.id == news?.authorId } }
     val comments = remember(newsId) { DummyData.commentList.filter { it.newsId == newsId } }
 
-    // 🟢 2. Ambil User yang sedang Login
-    val currentUser = SessionManager.currentUser
-
     var userRating by remember { mutableIntStateOf(0) }
-    val context = LocalContext.current
 
-    // 🟢 3. Update Logic Kirim
+    // 🟢 Logic Kirim Rating (Dibuat Polos / Placeholder)
+    // Nanti teman backendmu tinggal isi logika API di sini
     fun submitRatingToDatabase() {
-        if (currentUser == null) {
-            // Jika entah kenapa user null (misal session habis), suruh login lagi
-            Toast.makeText(context, "Silakan login terlebih dahulu!", Toast.LENGTH_SHORT).show()
+        if (userRating == 0) {
+            Toast.makeText(context, "Silakan pilih bintang terlebih dahulu", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // DATA YANG AKAN DIKIRIM KE BACKEND:
-        val userId = currentUser.id
-        val newsIdToSend = newsId
-        val ratingValue = userRating
+        // TODO: Backend Developer akan mengisi logika kirim ke API di sini
 
-        // Simulasi Kirim
+        // Simulasi UI saja
         Toast.makeText(
             context,
-            "Rating $ratingValue bintang dari ${currentUser.name} terkirim!",
+            "Rating $userRating bintang terkirim! (Menunggu Integrasi Backend)",
             Toast.LENGTH_SHORT
         ).show()
 
+        // Reset rating
         userRating = 0
     }
 
@@ -82,7 +79,7 @@ fun NewsDetailScreen(
             modifier = Modifier.fillMaxSize().padding(innerPadding),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
-            // ... (Bagian Judul, Gambar, Author, Konten TETAP SAMA) ...
+            // JUDUL
             item {
                 Text(
                     text = news.title,
@@ -91,6 +88,7 @@ fun NewsDetailScreen(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
+            // GAMBAR
             item {
                 Spacer(modifier = Modifier.height(16.dp))
                 Image(
@@ -100,14 +98,17 @@ fun NewsDetailScreen(
                     modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)
                 )
             }
+            // AUTHOR & TANGGAL
             item {
                 Spacer(modifier = Modifier.height(16.dp))
                 AuthorDateRow(authorName = author?.name ?: "Unknown", date = news.date)
             }
+            // KONTEN BERITA
             item {
                 Spacer(modifier = Modifier.height(16.dp))
                 HtmlText(html = news.content, modifier = Modifier.padding(horizontal = 16.dp))
             }
+            // VIDEO YOUTUBE
             if (news.youtubeVideoId != null) {
                 item {
                     Spacer(modifier = Modifier.height(24.dp))
@@ -123,9 +124,12 @@ fun NewsDetailScreen(
                 }
             }
 
-            // 🟢 BAGIAN INPUT RATING
+            // INPUT RATING
             item {
                 Spacer(modifier = Modifier.height(24.dp))
+
+                // Text sapaan user dihapus karena kita tidak tahu siapa yang login
+
                 ArticleRatingInput(
                     currentRating = userRating,
                     onRatingSelected = { userRating = it },
@@ -133,6 +137,7 @@ fun NewsDetailScreen(
                 )
             }
 
+            // LIST KOMENTAR
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(

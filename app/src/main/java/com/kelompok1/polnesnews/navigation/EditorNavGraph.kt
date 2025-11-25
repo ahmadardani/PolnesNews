@@ -21,7 +21,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.kelompok1.polnesnews.components.EditorBottomNav
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
-import com.kelompok1.polnesnews.model.User
 import com.kelompok1.polnesnews.ui.editor.EditorDashboardScreen
 import com.kelompok1.polnesnews.ui.editor.EditorSettingsScreen
 import com.kelompok1.polnesnews.ui.editor.YourArticleScreen
@@ -33,7 +32,7 @@ import com.kelompok1.polnesnews.ui.common.AboutScreen
 @Composable
 fun EditorNavGraph(
     rootNavController: NavHostController,
-    currentUser: User?,
+    // 🔴 HAPUS: currentUser: User?,
     onLogout: () -> Unit
 ) {
     val editorNavController = rememberNavController()
@@ -74,7 +73,7 @@ fun EditorNavGraph(
             navController = editorNavController,
             startDestination = "editor_dashboard",
             modifier = Modifier.padding(innerPadding),
-            // 🟢 ANIMASI TRANSISI (Sama dengan UserNavGraph)
+            // 🟢 ANIMASI TRANSISI
             enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300)) },
             exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300)) },
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300)) },

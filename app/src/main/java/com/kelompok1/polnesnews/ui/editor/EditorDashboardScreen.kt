@@ -27,25 +27,25 @@ import com.kelompok1.polnesnews.components.AccountInfoCard
 import com.kelompok1.polnesnews.model.DummyData
 import com.kelompok1.polnesnews.model.NewsStatus
 import com.kelompok1.polnesnews.ui.theme.*
-// 🟢 Import SessionManager
-import com.kelompok1.polnesnews.utils.SessionManager
+
+// 🔴 Import SessionManager DIHAPUS
 
 @Composable
 fun EditorDashboardScreen(
-    // 🟢 Parameter editorId SUDAH DIHAPUS
     currentRoute: String,
     onNavigate: (String) -> Unit
 ) {
-    // 🟢 1. Ambil Data Editor dari SessionManager
-    val currentUser = SessionManager.currentUser
+    // 🟢 REVISI: Hardcode Data Editor untuk Simulasi
+    // TODO: Nanti ganti 1 dengan ID user yang diurus oleh Backend
+    val placeholderUserId = 1
+    val placeholderName = "Ade Darmawan (Simulasi)"
 
-    // 🟢 2. Filter Berita Milik Editor Tersebut
-    // Menggunakan remember(currentUser) agar data refresh jika user berubah
-    val myArticles = remember(currentUser) {
-        DummyData.newsList.filter { it.authorId == currentUser?.id }
+    // Filter Berita Milik Editor ID 1
+    val myArticles = remember {
+        DummyData.newsList.filter { it.authorId == placeholderUserId }
     }
 
-    // --- 3. Hitung Statistik ---
+    // --- 3. Hitung Statistik (Logicnya tetap sama, hanya sumber data yang berubah) ---
     val totalViews = myArticles.sumOf { it.views }
 
     val approvedCount = myArticles.count { it.status == NewsStatus.PUBLISHED }
@@ -54,7 +54,7 @@ fun EditorDashboardScreen(
         it.status == NewsStatus.PENDING_REVIEW || it.status == NewsStatus.PENDING_UPDATE
     }
 
-    // Hitung Rating Rata-rata (Dari tabel comment yang newsId-nya milik editor ini)
+    // Hitung Rating Rata-rata
     val ratings = remember(myArticles) {
         DummyData.commentList.filter { comment ->
             myArticles.any { it.id == comment.newsId }
@@ -83,9 +83,9 @@ fun EditorDashboardScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 1. Header Akun
+        // 1. Header Akun (Menggunakan Placeholder)
         AccountInfoCard(
-            fullName = currentUser?.name ?: "Editor",
+            fullName = placeholderName,
             role = "Editor",
             modifier = Modifier.fillMaxWidth()
         )
@@ -128,14 +128,14 @@ fun EditorDashboardScreen(
                     modifier = Modifier.weight(1f),
                     label = "Published",
                     value = approvedCount.toString(),
-                    containerColor = StatusPublishedBg, // Pastikan warna ini ada di Theme atau ganti Color.Green
+                    containerColor = StatusPublishedBg,
                     contentColor = StatusPublishedText
                 )
                 EditorStatCard(
                     modifier = Modifier.weight(1f),
                     label = "Pending",
                     value = pendingCount.toString(),
-                    containerColor = StatusPendingBg, // Pastikan warna ini ada di Theme atau ganti Color.Yellow
+                    containerColor = StatusPendingBg,
                     contentColor = StatusPendingText
                 )
             }
@@ -202,7 +202,7 @@ fun EditorDashboardScreen(
 }
 
 // ------------------------------------------------
-// HELPER COMPONENTS
+// HELPER COMPONENTS (Tidak ada perubahan)
 // ------------------------------------------------
 
 @Composable

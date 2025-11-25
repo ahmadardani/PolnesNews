@@ -17,17 +17,17 @@ import com.kelompok1.polnesnews.components.AdminBottomNav
 import com.kelompok1.polnesnews.components.SettingsButton
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
-import com.kelompok1.polnesnews.utils.SessionManager // 🟢 Import SessionManager
+
+// 🔴 Import SessionManager DIHAPUS
 
 @Composable
 fun AdminSettingsScreen(
-    // currentUser: User?, // 🔴 Hapus parameter ini
     onLogout: () -> Unit,
-    onPrivacyClick: () -> Unit, // 🟢 Parameter Navigasi Baru
-    onAboutClick: () -> Unit    // 🟢 Parameter Navigasi Baru
+    onPrivacyClick: () -> Unit,
+    onAboutClick: () -> Unit
 ) {
-    // 🟢 Ambil user dari SessionManager
-    val currentUser = SessionManager.currentUser
+    // 🔴 Hapus pengambilan user dari SessionManager
+    // val currentUser = SessionManager.currentUser // REMOVED
 
     Column(
         modifier = Modifier
@@ -44,8 +44,9 @@ fun AdminSettingsScreen(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
+        // 🟢 Menggunakan Placeholder
         AccountInfoCard(
-            fullName = currentUser?.name ?: "Admin",
+            fullName = "Admin Utama", // Placeholder Nama Admin
             role = "Administrator"
         )
 
@@ -63,12 +64,12 @@ fun AdminSettingsScreen(
         SettingsButton(
             text = "Privacy and Policy",
             icon = Icons.Outlined.PrivacyTip,
-            onClick = onPrivacyClick // 🟢 Panggil navigasi
+            onClick = onPrivacyClick
         )
         SettingsButton(
             text = "About",
             icon = Icons.Outlined.Info,
-            onClick = onAboutClick // 🟢 Panggil navigasi
+            onClick = onAboutClick
         )
 
         // Tombol Logout

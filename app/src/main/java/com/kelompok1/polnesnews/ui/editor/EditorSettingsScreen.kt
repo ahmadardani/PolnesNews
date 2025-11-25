@@ -21,18 +21,18 @@ import com.kelompok1.polnesnews.components.EditorBottomNav
 import com.kelompok1.polnesnews.components.SettingsButton
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
-import com.kelompok1.polnesnews.utils.SessionManager // 🟢 Import SessionManager
+
+// 🔴 Import SessionManager DIHAPUS
 
 @Composable
 fun EditorSettingsScreen(
     navController: NavHostController,
-    // currentUser: User?, // 🔴 Hapus parameter ini
     onLogout: () -> Unit,
-    onPrivacyClick: () -> Unit, // 🟢 Parameter Navigasi Baru
-    onAboutClick: () -> Unit    // 🟢 Parameter Navigasi Baru
+    onPrivacyClick: () -> Unit,
+    onAboutClick: () -> Unit
 ) {
-    // 🟢 Ambil user dari SessionManager
-    val currentUser = SessionManager.currentUser
+    // 🟢 REVISI: Hapus pengambilan user dari SessionManager
+    // val currentUser = SessionManager.currentUser // REMOVED
 
     Column(
         modifier = Modifier
@@ -49,16 +49,15 @@ fun EditorSettingsScreen(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
+        // 🟢 Menggunakan Placeholder
         AccountInfoCard(
-            fullName = currentUser?.name ?: "Editor Not Found",
-            role = currentUser?.role?.name?.let {
-                it.lowercase().replaceFirstChar { char -> char.uppercase() }
-            } ?: "Guest"
+            fullName = "Ade Darmawan (Editor)",
+            role = "Editor"
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- Bagian Tombol-Tombol Pengaturan ---
+        // --- Bagian Tombol-Tombol Pengaturan (Tetap Sama) ---
         Text(
             text = "More Settings",
             style = MaterialTheme.typography.titleMedium,
@@ -70,12 +69,12 @@ fun EditorSettingsScreen(
         SettingsButton(
             text = "Privacy and Policy",
             icon = Icons.Outlined.PrivacyTip,
-            onClick = onPrivacyClick // 🟢 Panggil navigasi
+            onClick = onPrivacyClick
         )
         SettingsButton(
             text = "About",
             icon = Icons.Outlined.Info,
-            onClick = onAboutClick // 🟢 Panggil navigasi
+            onClick = onAboutClick
         )
 
         // Tombol Logout

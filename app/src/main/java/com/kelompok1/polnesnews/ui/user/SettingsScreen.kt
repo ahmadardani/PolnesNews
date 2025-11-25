@@ -21,8 +21,8 @@ import com.kelompok1.polnesnews.components.AccountInfoCard
 import com.kelompok1.polnesnews.components.SettingsButton
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
 import com.kelompok1.polnesnews.components.UserBottomNav
-// import com.kelompok1.polnesnews.model.DummyData // 🔴 Hapus ini (tidak dipakai lagi)
-import com.kelompok1.polnesnews.utils.SessionManager // 🟢 Import SessionManager
+
+// 🔴 SessionManager Import SUDAH DIHAPUS
 
 @Composable
 fun SettingsScreen(
@@ -30,8 +30,8 @@ fun SettingsScreen(
     onPrivacyClick: () -> Unit,
     onAboutClick: () -> Unit
 ) {
-    // 🟢 REVISI: Ambil data user yang sedang LOGIN dari SessionManager
-    val currentUser = SessionManager.currentUser
+    // 🟢 REVISI: Karena SessionManager dihapus, logika pengambilan user juga dihapus.
+    // Nanti Backend Developer yang akan memasang logika pengambilan data profil di sini.
 
     Column(
         modifier = Modifier
@@ -48,12 +48,10 @@ fun SettingsScreen(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
-        // Menampilkan data user asli
+        // 🟢 Menampilkan Placeholder (Guest) agar UI tidak error
         AccountInfoCard(
-            fullName = currentUser?.name ?: "Guest User", // Tampil Guest jika null
-            role = currentUser?.role?.name?.let {
-                it.lowercase().replaceFirstChar { char -> char.uppercase() }
-            } ?: "Guest"
+            fullName = "Guest User", // TODO: Nanti diganti dengan nama dari Backend
+            role = "User"            // TODO: Nanti diganti dengan role dari Backend
         )
 
         Spacer(modifier = Modifier.height(24.dp))

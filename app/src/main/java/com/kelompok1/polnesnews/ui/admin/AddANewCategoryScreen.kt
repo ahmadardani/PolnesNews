@@ -14,7 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,7 +34,8 @@ import com.kelompok1.polnesnews.model.UserRole
 import com.kelompok1.polnesnews.ui.theme.PolnesGreen
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 import com.kelompok1.polnesnews.ui.theme.White
-import com.kelompok1.polnesnews.utils.SessionManager
+
+// 🔴 Import SessionManager DIHAPUS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,20 +45,11 @@ fun AddANewCategoryScreen(
     onSubmitClick: () -> Unit,
     onDeleteClick: () -> Unit = {}
 ) {
-    // 🟢 GUARD: Cek Hak Akses
-    val currentUserRole = SessionManager.currentUser?.role
+    // 🔴 GUARD dan currentUserRole DIHAPUS.
+    // Kita asumsikan HAK AKSES SELALU ADMIN untuk testing.
+    // val currentUserRole = SessionManager.currentUser?.role // REMOVED
 
-    if (currentUserRole != UserRole.ADMIN) {
-        // Tampilkan pesan akses terbatas dan keluar dari Composable
-        Scaffold(topBar = { CommonTopBar(title = "Access Denied", onBack = onBackClick) }) {
-            Box(modifier = Modifier.fillMaxSize().padding(it), contentAlignment = Alignment.Center) {
-                Text("Error: Hanya Administrator yang dapat mengelola kategori.", color = MaterialTheme.colorScheme.error)
-            }
-        }
-        return
-    }
-
-    // --- Logic Form (Hanya dijalankan jika user adalah Admin) ---
+    // --- Logic Form (Aman, karena sudah tidak ada SessionManager) ---
     val isEditMode = categoryId != null
     val categoryToEdit: Category? = if (isEditMode) {
         DummyData.categoryList.find { it.id == categoryId }
@@ -98,7 +89,7 @@ fun AddANewCategoryScreen(
                 onBack = onBackClick,
                 colors = topBarColors,
                 windowInsets = WindowInsets(0.dp),
-                // 🔴 ACTIONS: Dikosongkan (Tombol Hapus di TopBar hilang di Mode Edit)
+                // 🔴 ACTIONS: Dikosongkan
                 actions = {
                     /* Dihapus sesuai permintaan user */
                 }
@@ -226,10 +217,6 @@ fun AddANewCategoryScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )
-
-            // 💡 Catatan: Jika ingin tombol Hapus muncul di bagian bawah form,
-            // kamu bisa menambahkannya di sini dan memanggil showDeleteDialog = true
-            // Button(onClick = { showDeleteDialog = true }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) { ... }
 
             Spacer(modifier = Modifier.height(80.dp))
         }

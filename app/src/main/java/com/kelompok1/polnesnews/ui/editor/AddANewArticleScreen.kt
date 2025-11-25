@@ -31,8 +31,8 @@ import com.kelompok1.polnesnews.model.News
 import com.kelompok1.polnesnews.ui.theme.PolnesGreen
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 import com.kelompok1.polnesnews.ui.theme.White
-// 🟢 Import SessionManager
-import com.kelompok1.polnesnews.utils.SessionManager
+
+// 🔴 Import SessionManager DIHAPUS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,22 +41,15 @@ fun AddANewArticleScreen(
     onBackClick: () -> Unit,
     onSubmitClick: () -> Unit,
 ) {
-    // 🟢 Ambil ID Penulis (Author ID) dari Session Manager
-    val currentAuthorId = SessionManager.currentUser?.id
+    // 🟢 REVISI: Hardcode ID Penulis (Author ID)
+    // TODO: Nanti ganti 1 dengan ID user yang dikirim dari Backend
+    val currentAuthorId = 1
 
-    // 🟢 GUARD: Jika user belum login, tampilkan pesan error
-    if (currentAuthorId == null) {
-        Scaffold(topBar = { CommonTopBar(title = "Error", onBack = onBackClick) }) {
-            Box(modifier = Modifier.fillMaxSize().padding(it), contentAlignment = Alignment.Center) {
-                Text("Error: Anda harus login sebagai Editor untuk membuat artikel.")
-            }
-        }
-        return
-    }
+    // 🔴 GUARD ERROR DIHAPUS: Karena currentAuthorId sudah di-hardcode (pasti ada)
 
     // --- Data Logic ---
     val isEditMode = articleId != null
-    // Gunakan find saja, karena kita tahu currentUser pasti ada di sini
+    // Filter artikel tetap pakai DummyData
     val articleToEdit: News? = if (isEditMode) { DummyData.newsList.find { it.id == articleId } } else { null }
 
     // State Form
@@ -87,7 +80,7 @@ fun AddANewArticleScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                // 💡 Saat onSubmitClick dipanggil, kita tahu authorId-nya adalah currentAuthorId
+                // 💡 currentAuthorId sekarang adalah 1
                 onClick = { onSubmitClick() },
                 containerColor = PolnesGreen,
                 contentColor = White
@@ -108,6 +101,8 @@ fun AddANewArticleScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
+
+            // ... (Kode Inputan Tetap Sama) ...
 
             // --- INPUT JUDUL ---
             Text("Title", style = MaterialTheme.typography.titleMedium)

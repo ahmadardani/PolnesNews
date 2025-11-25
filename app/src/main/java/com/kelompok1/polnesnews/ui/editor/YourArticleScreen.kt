@@ -27,18 +27,21 @@ import com.kelompok1.polnesnews.model.NewsStatus
 import com.kelompok1.polnesnews.ui.theme.ActionDeleteIcon
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 import com.kelompok1.polnesnews.ui.theme.White
-// 🟢 Import SessionManager
-import com.kelompok1.polnesnews.utils.SessionManager
+
+// 🔴 SessionManager import SUDAH DIHAPUS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YourArticleScreen(navController: NavHostController) {
-    // 🟢 1. Data Awal: Ambil dari SessionManager (Bukan hardcoded lagi)
-    val currentUser = SessionManager.currentUser
 
-    // Filter artikel hanya milik user yang sedang login
-    val allEditorArticles = remember(currentUser) {
-        DummyData.newsList.filter { it.authorId == currentUser?.id }
+    // 🟢 REVISI: Simulasi User Login (Hardcode ID = 1)
+    // Karena SessionManager dihapus, kita pura-pura login sebagai User ID 1 (Ade Darmawan)
+    // agar list artikel editor terlihat (tidak kosong).
+    val currentUserId = 1
+
+    // Filter artikel hanya milik user ID 1
+    val allEditorArticles = remember {
+        DummyData.newsList.filter { it.authorId == currentUserId }
     }
 
     // 2. State Search
@@ -89,7 +92,7 @@ fun YourArticleScreen(navController: NavHostController) {
                 .background(MaterialTheme.colorScheme.background)
         ) {
 
-            // 🟢 SEARCH BAR (Background Putih)
+            // SEARCH BAR
             PaddingValues(16.dp).let {
                 OutlinedTextField(
                     value = searchQuery,
@@ -109,11 +112,9 @@ fun YourArticleScreen(navController: NavHostController) {
                     singleLine = true,
                     shape = RoundedCornerShape(24.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        // Warna Putih Solid
                         focusedContainerColor = Color.White,
                         unfocusedContainerColor = Color.White,
                         disabledContainerColor = Color.White,
-                        // Border
                         unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
                         focusedBorderColor = MaterialTheme.colorScheme.primary
                     )

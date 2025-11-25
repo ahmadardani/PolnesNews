@@ -22,7 +22,6 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.kelompok1.polnesnews.components.AdminBottomNav
 import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
-import com.kelompok1.polnesnews.model.User
 import com.kelompok1.polnesnews.ui.admin.*
 import com.kelompok1.polnesnews.ui.common.PrivacyPolicyScreen
 import com.kelompok1.polnesnews.ui.common.AboutScreen
@@ -31,7 +30,7 @@ import com.kelompok1.polnesnews.ui.common.AboutScreen
 @Composable
 fun AdminNavGraph(
     rootNavController: NavHostController,
-    currentUser: User?,
+    // 🔴 HAPUS: currentUser: User?,
     onLogout: () -> Unit
 ) {
     val adminNavController = rememberNavController()
@@ -81,7 +80,7 @@ fun AdminNavGraph(
             navController = adminNavController,
             startDestination = "Dashboard",
             modifier = Modifier.padding(innerPadding),
-            // 🟢 ANIMASI TRANSISI (Sama dengan UserNavGraph)
+            // 🟢 ANIMASI TRANSISI
             enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300)) },
             exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(300)) },
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(300)) },

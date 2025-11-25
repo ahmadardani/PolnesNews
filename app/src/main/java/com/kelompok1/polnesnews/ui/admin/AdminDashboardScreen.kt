@@ -33,16 +33,17 @@ import com.kelompok1.polnesnews.model.NewsStatus
 import com.kelompok1.polnesnews.model.User
 import com.kelompok1.polnesnews.model.UserRole
 import com.kelompok1.polnesnews.ui.theme.*
-import com.kelompok1.polnesnews.utils.SessionManager // 🟢 Import SessionManager
+
+// 🔴 Import SessionManager DIHAPUS
 
 @Composable
 fun AdminDashboardScreen(
-    // Parameter dihapus, karena currentUser diambil dari SessionManager
+    // Parameter dihapus
 ) {
-    // 🟢 Ambil user dari SessionManager
-    val currentUser = SessionManager.currentUser
+    // 🔴 Hapus pengambilan user dari SessionManager
+    // val currentUser = SessionManager.currentUser // REMOVED
 
-    // --- 1. Hitung Data Statistik Global ---
+    // --- 1. Hitung Data Statistik Global (Tetap pakai DummyData) ---
     val pendingNews = DummyData.newsList.count {
         it.status == NewsStatus.PENDING_REVIEW || it.status == NewsStatus.PENDING_DELETION
     }
@@ -52,7 +53,7 @@ fun AdminDashboardScreen(
     val totalReaders = DummyData.userList.count { it.role == UserRole.USER }
     val totalCategories = DummyData.categoryList.size
 
-    // --- 2. Data Analitik ---
+    // --- 2. Data Analitik (Tetap pakai DummyData) ---
     val categoryViewsMap = remember {
         DummyData.categoryList.map { category ->
             val viewsInCategory = DummyData.newsList
@@ -92,15 +93,17 @@ fun AdminDashboardScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Info Akun
+        // Info Akun (Menggunakan Placeholder)
         AccountInfoCard(
-            fullName = currentUser?.name ?: "Admin",
+            fullName = "Admin Utama",
             role = "Administrator",
             modifier = Modifier.fillMaxWidth()
         )
 
         Column(modifier = Modifier.padding(16.dp)) {
             Spacer(modifier = Modifier.height(8.dp))
+
+            // ... (Kode Dashboard Stats dan Analitik lainnya tidak berubah) ...
 
             // --- SECTION 1: SYSTEM OVERVIEW ---
             Text(
@@ -246,7 +249,7 @@ fun AdminDashboardScreen(
 }
 
 // ------------------------------------------------
-// UI COMPONENTS
+// UI COMPONENTS (Tidak ada perubahan di sini)
 // ------------------------------------------------
 
 @Composable
