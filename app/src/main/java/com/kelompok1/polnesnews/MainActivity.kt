@@ -12,12 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.kelompok1.polnesnews.navigation.AdminNavGraph // 👈 1. WAJIB IMPORT INI
+import com.kelompok1.polnesnews.navigation.AdminNavGraph
 import com.kelompok1.polnesnews.navigation.AuthNavGraph
 import com.kelompok1.polnesnews.navigation.EditorNavGraph
 import com.kelompok1.polnesnews.navigation.UserNavGraph
 import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
-import com.kelompok1.polnesnews.utils.SessionManager
+// 🔴 Import SessionManager DIHAPUS
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,6 +42,14 @@ class MainActivity : ComponentActivity() {
 fun AppRootNavigation() {
     val rootNavController = rememberNavController()
 
+    // 🟢 Logika logout yang berulang diekstrak menjadi satu fungsi lambda
+    val logoutAction: () -> Unit = {
+        // Hapus stack navigasi sebelumnya dan kembali ke Login (Auth Graph)
+        rootNavController.navigate("auth_graph") {
+            popUpTo(0) { inclusive = true }
+        }
+    }
+
     NavHost(
         navController = rootNavController,
         startDestination = "auth_graph"
@@ -58,33 +66,21 @@ fun AppRootNavigation() {
 
         // 3. EDITOR
         composable("editor_root") {
-            val currentUser = SessionManager.currentUser
+            // 🔴 Hapus: val currentUser = SessionManager.currentUser
             EditorNavGraph(
                 rootNavController = rootNavController,
-                currentUser = currentUser,
-                onLogout = {
-                    SessionManager.currentUser = null
-                    rootNavController.navigate("auth_graph") {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
+                // 🔴 Hapus parameter currentUser
+                onLogout = logoutAction // 🟢 Gunakan fungsi logout yang sudah disederhanakan
             )
         }
 
-        // 4. ADMIN (👈 TAMBAHKAN INI)
+        // 4. ADMIN
         composable("admin_root") {
-            val currentUser = SessionManager.currentUser
+            // 🔴 Hapus: val currentUser = SessionManager.currentUser
             AdminNavGraph(
                 rootNavController = rootNavController,
-                currentUser = currentUser,
-                onLogout = {
-                    // Hapus sesi user
-                    SessionManager.currentUser = null
-                    // Kembali ke Login dan hapus stack navigasi sebelumnya
-                    rootNavController.navigate("auth_graph") {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
+                // 🔴 Hapus parameter currentUser
+                onLogout = logoutAction // 🟢 Gunakan fungsi logout yang sudah disederhanakan
             )
         }
     }
