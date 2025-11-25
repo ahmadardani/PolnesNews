@@ -7,9 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.outlined.PrivacyTip
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,10 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kelompok1.polnesnews.components.AccountInfoCard
 import com.kelompok1.polnesnews.components.SettingsButton
-import com.kelompok1.polnesnews.components.TitleOnlyTopAppBar
-import com.kelompok1.polnesnews.components.UserBottomNav
-// import com.kelompok1.polnesnews.model.DummyData // 🔴 Hapus ini (tidak dipakai lagi)
-import com.kelompok1.polnesnews.utils.SessionManager // 🟢 Import SessionManager
+import com.kelompok1.polnesnews.utils.SessionManager
 
 @Composable
 fun SettingsScreen(
@@ -30,7 +25,6 @@ fun SettingsScreen(
     onPrivacyClick: () -> Unit,
     onAboutClick: () -> Unit
 ) {
-    // 🟢 REVISI: Ambil data user yang sedang LOGIN dari SessionManager
     val currentUser = SessionManager.currentUser
 
     Column(
@@ -48,17 +42,19 @@ fun SettingsScreen(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
-        // Menampilkan data user asli
         AccountInfoCard(
-            fullName = currentUser?.name ?: "Guest User", // Tampil Guest jika null
-            role = currentUser?.role?.name?.let {
+            fullName = currentUser?.name ?: "Guest User",
+            // 🟢 REVISI PENTING DI SINI:
+            // Hapus '.name' karena role sekarang adalah String.
+            role = currentUser?.role?.let {
+                // Format String: "EDITOR" -> "Editor"
                 it.lowercase().replaceFirstChar { char -> char.uppercase() }
             } ?: "Guest"
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- Bagian Tombol-Tombol Pengaturan ---
+        // --- Bagian Tombol ---
         Text(
             text = "More Settings",
             style = MaterialTheme.typography.titleMedium,
@@ -78,7 +74,6 @@ fun SettingsScreen(
             onClick = onAboutClick
         )
 
-        // Tombol Logout
         SettingsButton(
             text = "Logout",
             icon = Icons.Outlined.Logout,
@@ -87,7 +82,6 @@ fun SettingsScreen(
     }
 }
 
-// --- PREVIEW ---
 @Preview(showBackground = true)
 @Composable
 private fun SettingsScreenPreview() {
@@ -96,22 +90,4 @@ private fun SettingsScreenPreview() {
         onPrivacyClick = {},
         onAboutClick = {}
     )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
-@Composable
-private fun FullSettingsScreenPreview() {
-    Scaffold(
-        topBar = { TitleOnlyTopAppBar(title = "Settings") },
-        bottomBar = { UserBottomNav(currentRoute = "Settings", onItemClick = {}) }
-    ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            SettingsScreen(
-                onLogout = {},
-                onPrivacyClick = {},
-                onAboutClick = {}
-            )
-        }
-    }
 }
