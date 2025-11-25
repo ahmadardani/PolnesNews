@@ -26,11 +26,10 @@ import com.kelompok1.polnesnews.ui.theme.PolnesNewsTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(
-    // 2 NavController:
-    // 'authNavController' untuk navigasi internal auth (misal, kembali ke WelcomeScreen),
-    // 'rootNavController' untuk navigasi ke app utama setelah daftar/login berhasil.
     rootNavController: NavHostController,
-    authNavController: NavController
+    authNavController: NavController,
+    // 🟢 REVISI: Tambahkan Callback agar logic navigasi pindah ke AuthNavGraph
+    onSignUpSubmitted: (String, String, String) -> Unit
 ) {
 
     var fullName by rememberSaveable { mutableStateOf("") }
@@ -42,10 +41,9 @@ fun SignUpScreen(
 
     Scaffold(
         topBar = {
-            // Pakai CommonTopBar yang sudah dibuat, biar tampilan konsisten
             CommonTopBar(
                 title = "Sign Up",
-                onBack = { authNavController.navigateUp() } // Kembali ke layar sebelumnya di auth flow
+                onBack = { authNavController.navigateUp() }
             )
         }
     ) { paddingValues ->
@@ -68,6 +66,7 @@ fun SignUpScreen(
                 lineHeight = 40.sp
             )
 
+            // Input Fields (Full Name, Email, Password, Confirm)
             OutlinedTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
@@ -75,7 +74,6 @@ fun SignUpScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
-
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
@@ -86,7 +84,6 @@ fun SignUpScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true
             )
-
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
@@ -100,11 +97,10 @@ fun SignUpScreen(
                 trailingIcon = {
                     val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = if (passwordVisible) "Sembunyikan password" else "Tampilkan password")
+                        Icon(imageVector = image, contentDescription = null)
                     }
                 }
             )
-
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
@@ -118,22 +114,19 @@ fun SignUpScreen(
                 trailingIcon = {
                     val image = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                        Icon(imageVector = image, contentDescription = if (confirmPasswordVisible) "Sembunyikan password" else "Tampilkan password")
+                        Icon(imageVector = image, contentDescription = null)
                     }
                 }
             )
 
-            Spacer(modifier = Modifier.weight(1.0f)) // Dorong tombol ke bawah
+            Spacer(modifier = Modifier.weight(1.0f))
 
             Button(
                 onClick = {
-                    // TODO: Tambahkan validasi dulu di sini (email valid, password cocok, dll)
-                    // TODO: Panggil ViewModel/API untuk proses sign up
-
-                    // Kalau berhasil, navigasi ke 'user_app' (main app)
-                    // dan hapus 'auth' dari back stack.
-                    rootNavController.navigate("user_app") {
-                        popUpTo("auth") { inclusive = true }
+                    // Validasi sederhana (boleh dipindah ke ViewModel nanti)
+                    if (password == confirmPassword && email.isNotEmpty()) {
+                        // 🟢 Panggil Callback, jangan navigate langsung disini!
+                        onSignUpSubmitted(fullName, email, password)
                     }
                 },
                 modifier = Modifier
@@ -156,11 +149,11 @@ fun SignUpScreen(
 @Preview(showBackground = true)
 @Composable
 fun SignUpScreenPreview() {
-    // Siapkan NavController dummy (bohongan) supaya preview bisa jalan
     PolnesNewsTheme {
         SignUpScreen(
             rootNavController = rememberNavController(),
-            authNavController = rememberNavController()
+            authNavController = rememberNavController(),
+            onSignUpSubmitted = { _, _, _ -> }
         )
     }
 }

@@ -81,7 +81,16 @@ fun AuthNavGraph(
         composable("signup") {
             SignUpScreen(
                 rootNavController = rootNavController,
-                authNavController = authNavController
+                authNavController = authNavController,
+                onSignUpSubmitted = { name, email, pass ->
+                    // Simulasi Logic Daftar (Nanti connect API disini)
+                    Toast.makeText(context, "Akun $name berhasil dibuat!", Toast.LENGTH_SHORT).show()
+
+                    // Setelah daftar, arahkan user ke Home (User Root)
+                    rootNavController.navigate("user_root") {
+                        popUpTo("auth_graph") { inclusive = true }
+                    }
+                }
             )
         }
     }
