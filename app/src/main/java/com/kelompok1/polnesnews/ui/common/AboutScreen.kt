@@ -72,7 +72,7 @@ fun AboutScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Aplikasi portal berita kampus Politeknik Negeri Samarinda. Dibuat untuk memenuhi tugas mata kuliah Pemrograman Mobile.",
+                text = "Aplikasi portal berita kampus Politeknik Negeri Samarinda. Dibuat untuk memenuhi tugas mata kuliah Pemrograman Perangkat Bergerak Multimedia.",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -96,7 +96,7 @@ fun AboutScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Baits Rika Saputra (236651071)\nNabil Muhamad Nabil Rifa’i (236651071)\nAhmad Ardani (236651075)\n",
+                text = "Baits Rika Saputra (236651071)\nNabil Muhamad Nabil Rifa’i (236651072)\nAhmad Ardani (236651075)\n",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold
             )
@@ -104,7 +104,7 @@ fun AboutScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             Text(
-                text = "© 2025 Polnes News Team",
+                text = "© 2025 PolnesNews",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline
             )
