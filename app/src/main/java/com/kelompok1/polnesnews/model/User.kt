@@ -1,15 +1,22 @@
 package com.kelompok1.polnesnews.model
 
-data class User(
-    val id: Int,
-    val name: String,
-    val email: String,
-    val password: String,
-    val role: UserRole = UserRole.USER
-)
+import com.google.gson.annotations.SerializedName
 
-enum class UserRole {
-    ADMIN,
-    EDITOR,
-    USER
-}
+data class User(
+    @SerializedName("id")
+    val id: Int,
+
+    @SerializedName("name")
+    val name: String,
+
+    @SerializedName("email")
+    val email: String,
+
+    @SerializedName("password")
+    val password: String,
+
+    // UBAH DARI ENUM KE STRING
+    // Default valuenya "USER", jadi kalau backend lupa kirim role, dianggap user biasa.
+    @SerializedName("role")
+    val role: String = UserRole.USER
+)

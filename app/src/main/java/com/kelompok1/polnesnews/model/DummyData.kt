@@ -37,7 +37,7 @@ object DummyData {
             name = "Ade Darmawan",
             email = "ade@polnesnews.com",
             password = "password123",
-            role = UserRole.EDITOR
+            role = UserRole.EDITOR // Menggunakan Constant String dari object UserRole
         ),
         User(
             id = 2,
@@ -51,7 +51,7 @@ object DummyData {
             name = "John Doe",
             email = "johndoe@polnesnews.com",
             password = "password123",
-            role = UserRole.USER
+            role = UserRole.USER // Menggunakan Constant String
         ),
         User(
             id = 4,
@@ -85,8 +85,17 @@ object DummyData {
 
     // Daftar kategori dummy
     val categoryList = listOf(
-        Category(1, "Teknologi", R.drawable.category_tech),
-        Category(2, "Ekonomi", R.drawable.category_economy)
+        Category(
+            id = 1,
+            name = "Teknologi",
+            // Menggunakan URL string dummy karena model diubah ke String
+            imageUrl = "https://ui-avatars.com/api/?name=Teknologi&background=0D8ABC&color=fff"
+        ),
+        Category(
+            id = 2,
+            name = "Ekonomi",
+            imageUrl = "https://ui-avatars.com/api/?name=Ekonomi&background=2ecc71&color=fff"
+        )
     )
 
     // Daftar berita dummy
@@ -95,25 +104,26 @@ object DummyData {
             id = 1,
             title = "Inovasi Teknologi Baru di Indonesia",
             categoryId = 1,
-            imageRes = R.drawable.sample_news1,
+            // Menggunakan URL string dummy
+            imageUrl = "https://picsum.photos/seed/tech/400/200",
             content = "Konten berita ini <b>hanya contoh</b> untuk tampilan awal.",
             authorId = 1,
             date = "2025-11-09",
             views = 4,
             youtubeVideoId = "dQw4w9WgXcQ",
-            status = NewsStatus.PUBLISHED
+            status = NewsStatus.PUBLISHED // Menggunakan Constant String dari object NewsStatus
         ),
         News(
             id = 2,
             title = "Ekonomi Dunia Mulai Pulih Pasca Krisis",
             categoryId = 2,
-            imageRes = R.drawable.sample_news2,
+            imageUrl = "https://picsum.photos/seed/economy/400/200",
             content = "Isi berita contoh kedua.",
             authorId = 2,
             date = "2025-11-08",
             views = 12,
             youtubeVideoId = null,
-            status = NewsStatus.PENDING_REVIEW
+            status = NewsStatus.PENDING_REVIEW // Menggunakan Constant String
         )
     )
 
@@ -150,9 +160,12 @@ object DummyData {
     val notifications = newsList.map { news ->
         // Cari nama kategori berdasarkan categoryId dari berita
         val categoryName = categoryList.find { it.id == news.categoryId }?.name ?: "Unknown"
+
         Notification(
             id = news.id,
-            iconRes = R.drawable.ic_news,
+            // Model Notification masih pakai Int resource untuk icon,
+            // jadi kita biarkan pakai R.drawable (ikon lokal aplikasi)
+            iconRes = R.drawable.ic_news, // Pastikan resource ini ada di folder drawable Anda
             category = categoryName,
             title = news.title,
             date = formatDate(news.date) // Gunakan helper format tanggal
