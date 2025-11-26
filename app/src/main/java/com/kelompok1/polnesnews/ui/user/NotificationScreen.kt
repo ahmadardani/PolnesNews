@@ -21,7 +21,9 @@ import com.kelompok1.polnesnews.model.DummyData
 fun NotificationsScreen(
     onNewsClick: (Int) -> Unit // 🟢 Menerima fungsi navigasi dari NavGraph
 ) {
-    val notifications = DummyData.notifications
+    // PERBAIKAN: Panggil sebagai fungsi getNotifications()
+    // Ini memastikan data yang diambil selalu sesuai dengan update terbaru di newsList
+    val notifications = DummyData.getNotifications()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),

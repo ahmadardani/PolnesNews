@@ -108,15 +108,3 @@ fun NotificationCard(
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun NotificationCardPreview() {
-    val sampleNotification = DummyData.notifications[0]
-    PolnesNewsTheme {
-        NotificationCard(
-            notification = sampleNotification,
-            onClick = {}
-        )
-    }
-}

@@ -34,7 +34,7 @@ object DummyData {
         User(3, "John Doe", "johndoe@polnesnews.com", "password123", UserRole.USER),
         User(4, "test", "test@t.com", "test", UserRole.USER),
         User(5, "e", "e", "e", UserRole.EDITOR),
-        User(6, "user@polnesnews.com", "password123", "u", UserRole.USER),
+        User(6, "user", "user@polnesnews.com", "password123", UserRole.USER),
         User(7, "admin", "admin@polnesnews.com", "password123", UserRole.ADMIN)
     )
 
