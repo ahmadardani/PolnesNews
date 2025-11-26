@@ -17,83 +17,38 @@ object DummyData {
      */
     fun formatDate(dateString: String): String {
         try {
-            // Format input dari data (2025-11-09)
             val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH)
-            // Format output ke UI (Saturday, 09 November 2025)
             val outputFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy", Locale.ENGLISH)
 
             val date = LocalDate.parse(dateString, inputFormatter)
             return date.format(outputFormatter)
         } catch (e: Exception) {
-            // Jika format salah/error, kembalikan string aslinya biar gak crash
             return dateString
         }
     }
 
-    // Daftar pengguna dummy
-    val userList = listOf(
-        User(
-            id = 1,
-            name = "Ade Darmawan",
-            email = "ade@polnesnews.com",
-            password = "password123",
-            role = UserRole.EDITOR
-        ),
-        User(
-            id = 2,
-            name = "Editor B",
-            email = "editor_b@polnesnews.com",
-            password = "password123",
-            role = UserRole.EDITOR
-        ),
-        User(
-            id = 3,
-            name = "John Doe",
-            email = "johndoe@polnesnews.com",
-            password = "password123",
-            role = UserRole.USER
-        ),
-        User(
-            id = 4,
-            name = "test",
-            email = "test@t.com",
-            password = "test",
-            role = UserRole.USER
-        ),
-        User(
-            id = 5,
-            name = "e",
-            email = "e",
-            password = "e",
-            role = UserRole.EDITOR
-        ),
-        User(
-            id = 6,
-            name = "user@polnesnews.com",
-            email = "password123",
-            password = "u",
-            role = UserRole.USER
-        ),
-        User(
-            id = 7,
-            name = "admin",
-            email = "admin@polnesnews.com",
-            password = "password123",
-            role = UserRole.ADMIN
-        )
+    // PENTING: Gunakan mutableListOf agar bisa ditambah/edit/hapus saat runtime
+    val userList = mutableListOf(
+        User(1, "Ade Darmawan", "ade@polnesnews.com", "password123", UserRole.EDITOR),
+        User(2, "Editor B", "editor_b@polnesnews.com", "password123", UserRole.EDITOR),
+        User(3, "John Doe", "johndoe@polnesnews.com", "password123", UserRole.USER),
+        User(4, "test", "test@t.com", "test", UserRole.USER),
+        User(5, "e", "e", "e", UserRole.EDITOR),
+        User(6, "user@polnesnews.com", "password123", "u", UserRole.USER),
+        User(7, "admin", "admin@polnesnews.com", "password123", UserRole.ADMIN)
     )
 
-    // Daftar kategori dummy
+    // Kategori biasanya tetap, jadi listOf tidak masalah, tapi mutable juga boleh
     val categoryList = listOf(
         Category(1, "Kesehatan", R.drawable.category_health),
         Category(2, "Pendidikan", R.drawable.category_education),
         Category(3, "Pekerjaan", R.drawable.category_jobs),
         Category(4, "Prestasi", R.drawable.category_achievement),
-        Category(5,"Acara",R.drawable.category_events)
+        Category(5, "Acara", R.drawable.category_events)
     )
 
-    // Daftar berita dummy
-    val newsList = listOf(
+    // PENTING: Gunakan mutableListOf agar berita bisa dihapus/diedit
+    val newsList = mutableListOf(
         // --- KATEGORI 1: KESEHATAN ---
         News(
             id = 1,
@@ -509,7 +464,7 @@ object DummyData {
                <li>Adestya Ramadani Prodi S2 Terapan Pemasaran Inovasi dan Teknlogi IPK 4,00</li>
                <li>Alvina Harahap, D3 Akuntasi IPK 3,99</li>
                <li>Gutsi Tri Cahyani , D3 Nautika IPK 3,93</li>
-               <li>Renita Tri Cahyani, S1 Terpan Akuntansi Manajerial, IPK 3,94</li>
+               <li>Renita Tri Cahyani, S1 Terapan Akuntansi Manajerial, IPK 3,94</li>
                <li>Aripadi Maulana S1 Terapan Arsitektur Bangunan Gedung IPK 3,92</li>
                <li>Puti Safina Yamanda D3 KPNK IPK 3,90</li>
                <li>Nur Hidayati, S1 Terapan Bisnis Digital, IPK 3,89</li>
@@ -542,8 +497,8 @@ object DummyData {
         )
     )
 
-    // Daftar komentar/rating dummy
-    val commentList = listOf(
+    // PENTING: Gunakan mutableListOf agar komentar bisa ditambah
+    val commentList = mutableListOf(
         // --- Komentar untuk Berita 1: Golongan Darah (Tayang 09 Nov) ---
         Comment(
             id = 1,
@@ -595,7 +550,6 @@ object DummyData {
         ),
 
         // --- Komentar untuk Berita 7: Job Fair Polnes (Tayang 21 Nov) ---
-        // Topik panas, biasanya banyak komentar/rating
         Comment(
             id = 7,
             newsId = 7,
@@ -671,18 +625,19 @@ object DummyData {
 
     /**
      * Membuat daftar notifikasi palsu.
-     * Data ini diturunkan (di-map) dari 'newsList' di atas.
-     * Tujuannya agar data notifikasi selalu sinkron dengan data berita.
+     * Menggunakan fungsi agar selalu menghasilkan data baru saat dipanggil
+     * berdasarkan newsList terkini.
      */
-    val notifications = newsList.map { news ->
-        // Cari nama kategori berdasarkan categoryId dari berita
-        val categoryName = categoryList.find { it.id == news.categoryId }?.name ?: "Unknown"
-        Notification(
-            id = news.id,
-            iconRes = R.drawable.ic_news,
-            category = categoryName,
-            title = news.title,
-            date = formatDate(news.date) // Gunakan helper format tanggal
-        )
+    fun getNotifications(): List<Notification> {
+        return newsList.map { news ->
+            val categoryName = categoryList.find { it.id == news.categoryId }?.name ?: "Unknown"
+            Notification(
+                id = news.id,
+                iconRes = R.drawable.ic_news, // Pastikan icon ini ada di drawable
+                category = categoryName,
+                title = news.title,
+                date = formatDate(news.date)
+            )
+        }
     }
 }
